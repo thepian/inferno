@@ -10,6 +10,7 @@ class StatefulComponent extends Component {
   }
 }
 
+
 const FunctionalComponent = ({ value }) =>
   createElement("span", null, `stateless ${value}!`);
 

@@ -1,13 +1,6 @@
 import { renderToStaticMarkup } from "inferno-server";
 import Component from "inferno-component";
 
-/*
- class StatefulComponent extends Component {
- render() {
- return createElement('span', null, `stateless ${ this.props.value }!`);
- }
- }*/
-
 function WrappedInput(props) {
   return <input type="text" value={props.value} />;
 }
@@ -41,8 +34,8 @@ describe("SSR Creation (JSX)", () => {
     },
     {
       description: "should render mixed invalid/valid children",
-      template: () => <div>{[null, "123", null, "456"]}</div>,
-      result: "<div>123<!---->456</div>"
+      template: () => <div>{[null, true, false, "123", null, "456"]}</div>,
+      result: "<div><!---->123<!---->456</div>"
     },
     {
       description: "should ignore children as props",

@@ -134,9 +134,7 @@ export class RenderStream extends Readable {
           }
           return true;
         } else if (isArray(child)) {
-          this.push("<!---->");
           return Promise.resolve(this.renderChildren(child)).then(() => {
-            this.push("<!--!-->");
             return true;
           });
         } else if (!isInvalid(child)) {

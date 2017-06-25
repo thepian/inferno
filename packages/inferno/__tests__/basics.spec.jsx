@@ -1,4 +1,4 @@
-import { render } from 'inferno';
+import { render, createVNode } from 'inferno';
 
 const comparer = document.createElement('div');
 function innerHTML(HTML) {

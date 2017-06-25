@@ -25,11 +25,11 @@ export class RenderQueueStream extends Readable {
   public collector: any[] = [Infinity]; // Infinity marks the end of the stream
   public promises: any[] = [];
 
-  constructor(initNode, staticMarkup) {
+  constructor(initNode) {
     super();
     this.pushQueue = this.pushQueue.bind(this);
     if (initNode) {
-      this.renderVNodeToQueue(initNode, null, staticMarkup, null);
+      this.renderVNodeToQueue(initNode, null, null);
     }
   }
 
@@ -90,7 +90,27 @@ export class RenderQueueStream extends Readable {
     }
   }
 
-  public renderVNodeToQueue(vNode, context, firstChild, position) {
+  public renderChildrenRecursive(children, position, context, first: boolean) {
+    for (let i = 0, len = children.length; i < len; i++) {
+      const child = children[i];
+      if (isString(child)) {
+        this.addToQueue(
+          (first && i === 0 ? "" : "<!---->") + escapeText(child),
+          position
+        );
+      } else if (isNumber(child)) {
+        this.addToQueue(child + "", position);
+      } else if (!isInvalid(child)) {
+        if (isArray(child)) {
+          this.renderChildrenRecursive(child, position, context, first && i === 0);
+        } else {
+          this.renderVNodeToQueue(child, context, position);
+        }
+      }
+    }
+  }
+
+  public renderVNodeToQueue(vNode, context, position) {
     // In case render returns invalid stuff
     if (isInvalid(vNode)) {
       this.addToQueue("<!--!-->", position);
@@ -147,7 +167,6 @@ export class RenderQueueStream extends Readable {
                   this.renderVNodeToQueue(
                     instance.render(instance.props, instance.context),
                     instance.context,
-                    true,
                     promisePosition
                   );
                   setTimeout(this.pushQueue, 0);
@@ -164,10 +183,10 @@ export class RenderQueueStream extends Readable {
         const nextVNode = instance.render(props, vNode.context);
         instance._pendingSetState = false;
 
-        this.renderVNodeToQueue(nextVNode, context, true, position);
+        this.renderVNodeToQueue(nextVNode, context, position);
       } else {
         const nextVNode = type(props, context);
-        this.renderVNodeToQueue(nextVNode, context, true, position);
+        this.renderVNodeToQueue(nextVNode, context, position);
       }
       // If an element
     } else if ((flags & VNodeFlags.Element) > 0) {
@@ -218,22 +237,9 @@ export class RenderQueueStream extends Readable {
         renderedString += `>`;
         // Element has children, build them in
         if (!isInvalid(children)) {
-          if (isArray(children)) {
-            this.addToQueue(renderedString, position);
-            renderedString = "";
-            for (let i = 0, len = children.length; i < len; i++) {
-              const child = children[i];
-              if (isString(child)) {
-                this.addToQueue(escapeText(child), position);
-              } else if (isNumber(child)) {
-                this.addToQueue(child + "", position);
-              } else if (!isInvalid(child)) {
-                this.renderVNodeToQueue(child, context, i === 0, position);
-              }
-            }
-          } else if (isString(children)) {
+          if (isString(children)) {
             this.addToQueue(
-              (firstChild ? "" : "<!---->") + escapeText(children) + "</" + type + ">",
+              renderedString + escapeText(children) + "</" + type + ">",
               position
             );
             return;
@@ -243,9 +249,13 @@ export class RenderQueueStream extends Readable {
               position
             );
             return;
+          } else if (isArray(children)) {
+            this.addToQueue(renderedString, position);
+            renderedString = '';
+            this.renderChildrenRecursive(children, position, context, true);
           } else {
             this.addToQueue(renderedString, position);
-            this.renderVNodeToQueue(children, context, true, position);
+            this.renderVNodeToQueue(children, context, position);
             this.addToQueue("</" + type + ">", position);
             return;
           }
@@ -278,9 +288,9 @@ export class RenderQueueStream extends Readable {
 }
 
 export default function streamQueueAsString(node) {
-  return new RenderQueueStream(node, false);
+  return new RenderQueueStream(node);
 }
 
 export function streamQueueAsStaticMarkup(node) {
-  return new RenderQueueStream(node, true);
+  return new RenderQueueStream(node);
 }

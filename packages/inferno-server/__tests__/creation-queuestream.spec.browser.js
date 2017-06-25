@@ -10,6 +10,7 @@ class StatefulComponent extends Component {
   }
 }
 
+
 class StatefulPromiseComponent extends Component {
   getInitialProps() {
     return new Promise((resolve, reject) => {

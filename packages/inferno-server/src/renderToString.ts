@@ -19,11 +19,37 @@ import VNodeFlags from "inferno-vnode-flags";
 import { renderStylesToString } from "./prop-renderers";
 import { escapeText, voidElements } from "./utils";
 
+
+function renderChildrenRecursion(children: any[], vNode, context, first: boolean) {
+  let string = '';
+
+  for (let i = 0, len = children.length; i < len; i++) {
+    const child = children[i];
+
+    if (isString(child)) {
+      string += ((first && i === 0 ? '' : '<!---->') + escapeText(child));
+    } else if (isNumber(child)) {
+      string += child;
+    } else if (!isInvalid(child)) {
+      if (isArray(child)) {
+        string += renderChildrenRecursion(child, vNode, context, first && i === 0);
+      }
+
+      string += renderVNodeToString(
+        child,
+        vNode,
+        context
+      )
+    }
+  }
+
+  return string;
+}
+
 function renderVNodeToString(
   vNode,
   parent,
-  context,
-  firstChild
+  context
 ): string | undefined {
   const flags = vNode.flags;
   const type = vNode.type;
@@ -60,14 +86,14 @@ function renderVNodeToString(
       if (isInvalid(nextVNode)) {
         return "<!--!-->";
       }
-      return renderVNodeToString(nextVNode, vNode, context, true);
+      return renderVNodeToString(nextVNode, vNode, context);
     } else {
       const nextVNode = type(props, context);
 
       if (isInvalid(nextVNode)) {
         return "<!--!-->";
       }
-      return renderVNodeToString(nextVNode, vNode, context, true);
+      return renderVNodeToString(nextVNode, vNode, context);
     }
   } else if ((flags & VNodeFlags.Element) > 0) {
     let renderedString = `<${type}`;
@@ -120,27 +146,13 @@ function renderVNodeToString(
       renderedString += `>`;
       if (!isInvalid(children)) {
         if (isString(children)) {
-          renderedString += (firstChild ? "" : "<!---->") + children === "" ? " " : escapeText(children);
+          renderedString += children === "" ? " " : escapeText(children);
         } else if (isNumber(children)) {
           renderedString += children + "";
         } else if (isArray(children)) {
-          for (let i = 0, len = children.length; i < len; i++) {
-            const child = children[i];
-            if (isString(child)) {
-              renderedString += child === "" ? " " : escapeText(child);
-            } else if (isNumber(child)) {
-              renderedString += child;
-            } else if (!isInvalid(child)) {
-              renderedString += renderVNodeToString(
-                child,
-                vNode,
-                context,
-                i === 0
-              );
-            }
-          }
+          renderedString += renderChildrenRecursion(children, vNode, context, true);
         } else {
-          renderedString += renderVNodeToString(children, vNode, context, true);
+          renderedString += renderVNodeToString(children, vNode, context);
         }
       } else if (html) {
         renderedString += html;
@@ -169,9 +181,9 @@ function renderVNodeToString(
 }
 
 export default function renderToString(input: any): string {
-  return renderVNodeToString(input, {}, {}, true) as string;
+  return renderVNodeToString(input, {}, {}) as string;
 }
 
 export function renderToStaticMarkup(input: any): string {
-  return renderVNodeToString(input, {}, {}, true) as string;
+  return renderVNodeToString(input, {}, {}) as string;
 }
