@@ -36,22 +36,23 @@ const version = '4.0.0';
 options.component.handleInput = handleComponentInput;
 
 // we duplicate it so it plays nicely with different module loading systems
-// export default {
-// 	EMPTY_OBJ,
-// 	NO_OP,
-// 	createRenderer,
-// 	createVNode,
-// 	findDOMNode,
-// 	getFlagsForElementVnode,
-// 	internal_DOMNodeMap,
-// 	internal_isUnitlessNumber,
-// 	internal_normalize,
-// 	internal_patch,
-// 	linkEvent,
-// 	options,
-// 	render,
-// 	version
-// };
+export default {
+	EMPTY_OBJ,
+  Fiber,
+	NO_OP,
+	createRenderer,
+	createVNode,
+	findDOMNode,
+	getFlagsForElementVnode,
+	internal_DOMNodeMap,
+	internal_isUnitlessNumber,
+	internal_normalize,
+	internal_patch,
+	linkEvent,
+	options,
+	render,
+	version
+};
 
 export {
 	EMPTY_OBJ,

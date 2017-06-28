@@ -33,7 +33,7 @@ C.create = createInstance;
 C.patch = patchComponent;
 C.flush = flushQueue;
 
-const G = (window || global) as any;
+const G = (typeof window === 'undefined' ? global : window) as any;
 const handleInput = C.handleInput as Function;
 let noOp = ERROR_MSG;
 

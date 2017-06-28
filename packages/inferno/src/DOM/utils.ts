@@ -122,7 +122,7 @@ function removeChildren(dom: Element | null, children: IFiber[], lifecycle: Life
 
 // Reference to global object, rendering was moved there because v8 Chrome 59/60/61 crashed continously
 // to "Oh snap" when using object literal...
-export const G = (window || global) as any;
+export const G = (typeof window === 'undefined' ? global : window) as any;
 Object.defineProperty(G, 'INFRender', {
   configurable: false,
   enumerable: false,
