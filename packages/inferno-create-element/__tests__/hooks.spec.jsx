@@ -36,7 +36,7 @@ describe("Component lifecycle (JSX)", () => {
         }
 
         updateme() {
-          this.setStateSync({
+          this.setState({
             foo: !this.state.foo
           });
         }
@@ -84,11 +84,7 @@ describe("Component lifecycle (JSX)", () => {
         componentWillUnmount() {}
 
         render() {
-          return (
-            <div>
-              Terve
-            </div>
-          );
+          return <div>Terve</div>;
         }
       }
 
@@ -147,7 +143,7 @@ describe("Component lifecycle (JSX)", () => {
         }
 
         updateme() {
-          this.setStateSync({
+          this.setState({
             foo: !this.state.foo
           });
         }
@@ -187,11 +183,7 @@ describe("Component lifecycle (JSX)", () => {
         componentWillUnmount() {}
 
         render() {
-          return (
-            <div>
-              Terve
-            </div>
-          );
+          return <div>Terve</div>;
         }
       }
 
@@ -395,11 +387,7 @@ describe("Component lifecycle (JSX)", () => {
     let _container;
 
     function StatelessComponent() {
-      return (
-        <div>
-          Hello world
-        </div>
-      );
+      return <div>Hello world</div>;
     }
 
     afterEach(function() {
@@ -736,11 +724,7 @@ describe("Component lifecycle (JSX)", () => {
         }
 
         render() {
-          return (
-            <div ref={this.ref}>
-              Hello World
-            </div>
-          );
+          return <div ref={this.ref}>Hello World</div>;
         }
       }
 
@@ -1305,7 +1289,11 @@ describe("Component lifecycle (JSX)", () => {
         }
 
         render() {
-          return <span>{this.context.foobar}</span>;
+          return (
+            <span>
+              {this.context.foobar}
+            </span>
+          );
         }
       }
 

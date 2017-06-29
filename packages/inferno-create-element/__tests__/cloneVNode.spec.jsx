@@ -408,7 +408,6 @@ describe("cloneVNode (JSX)", () => {
 
       expect(node.ref).toEqual(initialFunc);
 
-      debugger;
       render(node, container);
       expect(innerHTML(container.innerHTML)).toEqual(innerHTML("<div></div>"));
 

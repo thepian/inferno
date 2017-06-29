@@ -392,9 +392,8 @@ function patchChildren(
   }
   if (patchArray) {
     // Common optimizations for arrays
-    const lastLength = fiber.children !== null
-      ? (fiber.children as any[]).length
-      : 0;
+    const lastLength =
+      fiber.children !== null ? (fiber.children as any[]).length : 0;
     const nextLength = nextChildren.length;
 
     if (lastLength === 0) {
@@ -547,7 +546,7 @@ export function patchComponent(
         if (isArray(nextInput)) {
           if (process.env.NODE_ENV !== "production") {
             throwError(
-              "a valid Inferno IVNode (or null) must be returned from a component render. You may have returned an array or an invalid object."
+              "a valid Inferno VNode (or null) must be returned from a component render. You may have returned an array or an invalid object."
             );
           }
           throwError();
@@ -1182,9 +1181,10 @@ function patchStyle(lastAttrValue, nextAttrValue, dom) {
       // do not add a hasOwnProperty check here, it affects performance
       value = nextAttrValue[style];
       if (value !== lastAttrValue[style]) {
-        domStyle[style] = !isNumber(value) || isUnitlessNumber.has(style)
-          ? value
-          : value + "px";
+        domStyle[style] =
+          !isNumber(value) || isUnitlessNumber.has(style)
+            ? value
+            : value + "px";
       }
     }
 
@@ -1196,9 +1196,8 @@ function patchStyle(lastAttrValue, nextAttrValue, dom) {
   } else {
     for (style in nextAttrValue) {
       value = nextAttrValue[style];
-      domStyle[style] = !isNumber(value) || isUnitlessNumber.has(style)
-        ? value
-        : value + "px";
+      domStyle[style] =
+        !isNumber(value) || isUnitlessNumber.has(style) ? value : value + "px";
     }
   }
 }

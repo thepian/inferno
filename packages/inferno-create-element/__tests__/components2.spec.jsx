@@ -37,38 +37,60 @@ describe("Components (JSX) #2", () => {
   describe("tracking DOM state", () => {
     class ComponentA extends Component {
       render() {
-        return <div><span>Something</span></div>;
+        return (
+          <div>
+            <span>Something</span>
+          </div>
+        );
       }
     }
 
     class ComponentB extends Component {
       render() {
-        return <div><span>Something</span></div>;
+        return (
+          <div>
+            <span>Something</span>
+          </div>
+        );
       }
     }
 
     class ComponentBWithStateChange extends Component {
       componentWillMount() {
-        this.setStateSync({
+        this.setState({
           text: "newText"
         });
 
-        this.setStateSync({
+        this.setState({
           text: "newText2"
         });
       }
 
       render() {
-        return <div><span>{this.state.text}</span></div>;
+        return (
+          <div>
+            <span>
+              {this.state.text}
+            </span>
+          </div>
+        );
       }
     }
 
     function ComA() {
-      return <div><span>Something</span></div>;
+      return (
+        <div>
+          <span>Something</span>
+        </div>
+      );
     }
 
     function ComB() {
-      return <div><span>Something</span></div>;
+      return (
+        <div>
+          <span>Something</span>
+        </div>
+      );
     }
 
     it("patching component A to component B, given they have the same children, should replace DOM tree ( for lifecycle ) with identical one", () => {
@@ -134,13 +156,13 @@ describe("Components (JSX) #2", () => {
       }
 
       _update() {
-        this.setStateSync({
+        this.setState({
           data: "bar"
         });
       }
 
       componentWillMount() {
-        this.setStateSync({
+        this.setState({
           data: "foo"
         });
       }
@@ -210,13 +232,13 @@ describe("Components (JSX) #2", () => {
       }
 
       _update() {
-        this.setStateSync({
+        this.setState({
           data: "bar"
         });
       }
 
       componentWillMount() {
-        this.setStateSync({
+        this.setState({
           data: "foo"
         });
       }

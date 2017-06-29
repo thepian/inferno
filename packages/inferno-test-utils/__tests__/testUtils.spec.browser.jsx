@@ -362,7 +362,7 @@
 // 			const testValue = (value) => {
 // 				expect(() => {
 // 					findAllInRenderedTree(value, predicate);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue(createElement(CreateClassComponent));
 // 			testValue(createElement(ExtendClassComponent));
@@ -430,7 +430,7 @@
 // 			const testValue = (value) => {
 // 				expect(() => {
 // 					findAllInVNodeTree(value, predicate);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue(renderIntoDocument(<div/>));
 // 			testValue(CreateClassComponent);
@@ -628,7 +628,7 @@
 // 			const testValue = (classNames) => {
 // 				expect(() => {
 // 					findRenderedDOMElementWithClass(tree, classNames);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue('level-2');
 // 			testValue('level-3');
@@ -676,7 +676,7 @@
 // 			const testValue = (tagName) => {
 // 				expect(() => {
 // 					findRenderedDOMElementWithTag(tree, tagName);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue('h1');
 // 			testValue('p');
@@ -710,7 +710,7 @@
 // 			const testValue = (type) => {
 // 				expect(() => {
 // 					findRenderedVNodeWithType(tree, type);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue('div');
 // 			testValue(FunctionalComponent);
@@ -749,7 +749,7 @@
 // 			const testValue = (type) => {
 // 				expect(() => {
 // 					findVNodeWithType(tree, type);
-// 				}).to.throw(Error, errorRegex);
+// 				}).toThrow(Error, errorRegex);
 // 			};
 // 			testValue('div');
 // 			testValue(FunctionalComponent);

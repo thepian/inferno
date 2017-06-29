@@ -384,8 +384,8 @@ describe("Children - (JSX)", () => {
         return (
           <div className="tab-group">
             inlineText{tabs.map((tab, i) =>
-            <Tab key={"Item " + i} title={tab.title} />
-          )}
+              <Tab key={"Item " + i} title={tab.title} />
+            )}
           </div>
         );
       }
@@ -927,11 +927,11 @@ describe("Children - (JSX)", () => {
       }
 
       function Looper({
-                        collectionOne,
-                        visibleStaticOne,
-                        collectionTwo,
-                        visibleStaticTwo
-                      }) {
+        collectionOne,
+        visibleStaticOne,
+        collectionTwo,
+        visibleStaticTwo
+      }) {
         return (
           <div className="c">
             {visibleStaticOne ? <Loop text="static" /> : null}
@@ -1072,9 +1072,8 @@ describe("Children - (JSX)", () => {
             second: true
           };
 
-          updaterFirst = () => this.setStateSync({ first: !this.state.first });
-          updaterSecond = () =>
-            this.setStateSync({ second: !this.state.second });
+          updaterFirst = () => this.setState({ first: !this.state.first });
+          updaterSecond = () => this.setState({ second: !this.state.second });
         }
 
         render() {
@@ -1205,7 +1204,11 @@ describe("Children - (JSX)", () => {
       const Nodes = ({ items }) =>
         <div>
           <div>test</div>
-          {items.map(item => <span>{item}</span>)}
+          {items.map(item =>
+            <span>
+              {item}
+            </span>
+          )}
           <div>end</div>
         </div>;
 
@@ -1240,7 +1243,11 @@ describe("Children - (JSX)", () => {
       const Nodes = ({ items }) =>
         <div>
           <div>test</div>
-          {items.map(item => <span key={item}>{item}</span>)}
+          {items.map(item =>
+            <span key={item}>
+              {item}
+            </span>
+          )}
           <div>end</div>
         </div>;
 
@@ -1275,7 +1282,11 @@ describe("Children - (JSX)", () => {
       const Nodes = ({ items }) =>
         <div>
           <div>test</div>
-          {items.map(item => <span key={item}>{item}</span>)}
+          {items.map(item =>
+            <span key={item}>
+              {item}
+            </span>
+          )}
           <div>end</div>
         </div>;
 
@@ -1981,13 +1992,17 @@ describe("Children - (JSX)", () => {
         }
 
         changeText() {
-          this.setStateSync({
+          this.setState({
             text: "foo"
           });
         }
 
         render() {
-          return <pre onclick={function() {}}>{this.state.text}</pre>;
+          return (
+            <pre onclick={function() {}}>
+              {this.state.text}
+            </pre>
+          );
         }
       }
 
@@ -2103,20 +2118,16 @@ describe("Children - (JSX)", () => {
             <span>foobar</span>
             {bool
               ? <FooBar
-                onComponentWillMount={foobarLifecycle.componentWillMount}
-                onComponentWillUnmount={foobarLifecycle.componentWillUnmount}
-              />
+                  onComponentWillMount={foobarLifecycle.componentWillMount}
+                  onComponentWillUnmount={foobarLifecycle.componentWillUnmount}
+                />
               : null}
           </div>
         );
       }
 
       function FooBar() {
-        return (
-          <span>
-            initial
-          </span>
-        );
+        return <span>initial</span>;
       }
 
       render(<Wrapper bool={true} />, container);

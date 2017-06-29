@@ -13,7 +13,7 @@ class TestCWRP extends Component {
   }
 
   componentWillReceiveProps() {
-    this.setStateSync({ a: 1 });
+    this.setState({ a: 1 });
 
     if (this.state.a !== 1) {
       this.props.done("state is not correct");
@@ -24,7 +24,11 @@ class TestCWRP extends Component {
   }
 
   render() {
-    return <div>{JSON.stringify(this.state)}</div>;
+    return (
+      <div>
+        {JSON.stringify(this.state)}
+      </div>
+    );
   }
 }
 
@@ -58,13 +62,13 @@ describe("state", () => {
   });
 
   describe("setting state", () => {
-    it("setStateSync should apply state during componentWillReceiveProps", done => {
+    it("setState should apply state during componentWillReceiveProps", done => {
       const node = createVNode(
         VNodeFlags.ComponentClass,
         TestCWRP,
         null,
         null,
-        { done },
+        { ref: done },
         null
       );
       render(node, container);

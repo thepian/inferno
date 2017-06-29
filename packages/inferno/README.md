@@ -316,7 +316,7 @@ of `createVNode` usage:
 ```javascript
 import Inferno from 'inferno';
 
-const vNode = Inferno.createVNode(1, 'div', { className: 'example' }, 'Hello world!');
+const vNode = Inferno.createVNode(VNodeFlags.HtmlElement, 'div', { className: 'example' }, 'Hello world!');
 
 Inferno.render(vNode, container);
 ```
@@ -344,7 +344,7 @@ An example of using `cloneVNode`:
 ```javascript
 import Inferno from 'inferno';
 
-const vNode = Inferno.createVNode(1, 'div', { className: 'example' }, 'Hello world!');
+const vNode = Inferno.createVNode(VNodeFlags.HtmlElement, 'div', { className: 'example' }, 'Hello world!');
 const newVNode = Inferno.cloneVNode(vNode, { id: 'new' }); // we are adding an id prop to the VNode
 
 Inferno.render(newVNode, container);

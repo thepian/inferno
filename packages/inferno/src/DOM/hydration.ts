@@ -69,9 +69,6 @@ function hydrateComponent(
 ): Element {
   const type = vNode.type;
   const ref = vNode.ref;
-
-  fiber.dom = dom;
-
   const props = vNode.props || EMPTY_OBJ;
 
   if (isClass) {
@@ -159,7 +156,7 @@ function hydrateElement(
   }
 
   fiber.dom = dom;
-  if (children) {
+  if (!isInvalid(children)) {
     hydrateChildren(fiber, children, dom, lifecycle, context, isSVG);
   } else if (dom.firstChild !== null) {
     dom.textContent = ""; // dom has content, but VNode has no children remove everything from DOM
@@ -284,7 +281,9 @@ function hydrateChildren(
       if (dom.nodeValue !== children) {
         dom.nodeValue = children as string;
       }
-    } else if (children) {
+    } else if (children === "") {
+      parentDom.appendChild(document.createTextNode(""));
+    } else {
       parentDom.textContent = children as string;
     }
     if (!isNull(dom)) {

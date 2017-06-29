@@ -1,49 +1,47 @@
-import Component from 'inferno-component';
-import { render } from 'inferno';
-import createElement from 'inferno-create-element';
-import { innerHTML } from 'inferno-utils';
-import { observer, inject, Provider } from 'inferno-mobx';
+import Component from "inferno-component";
+import { render } from "inferno";
+import createElement from "inferno-create-element";
+import { innerHTML } from "inferno-utils";
+import { observer, inject, Provider } from "inferno-mobx";
 
-describe('old MobX observer()', () => {
+describe("old MobX observer()", () => {
+  it("should throw if store is invalid", () => {
+    const tryConnect = () => observer("invalidStore", () => "Test");
+    expect(tryConnect).toThrow(/should be provided as array/);
+  });
 
-	it('should throw if store is invalid', () => {
-		const tryConnect = () => observer('invalidStore', () => 'Test');
-		expect(tryConnect).to.throw(Error, /should be provided as array/);
-	});
+  it("should throw if component is invalid", () => {
+    const tryConnect = () => observer(null);
+    expect(tryConnect).toThrow(/Please pass a valid component/);
+  });
 
-	it('should throw if component is invalid', () => {
-		const tryConnect = () => observer(null);
-		expect(tryConnect).to.throw(Error, /Please pass a valid component/);
-	});
-
-	it('should observer without second argument', () => {
-		const tryConnect = () => observer(['invalidStore'])(() => 'Test');
-		expect(tryConnect).to.not.throw(Error);
-	});
-
+  it("should observer without second argument", () => {
+    const tryConnect = () => observer(["invalidStore"])(() => "Test");
+    expect(tryConnect).not.toThrow();
+  });
 });
 
-describe('old - MobX inject()', () => {
-	let container;
+describe("old - MobX inject()", () => {
+  let container;
 
-	beforeEach(function () {
-		container = document.createElement('div');
-		container.style.display = 'none';
-		document.body.appendChild(container);
-	});
+  beforeEach(function() {
+    container = document.createElement("div");
+    container.style.display = "none";
+    document.body.appendChild(container);
+  });
 
-	afterEach(function () {
-		render(null, container);
-		document.body.removeChild(container);
-	});
+  afterEach(function() {
+    render(null, container);
+    document.body.removeChild(container);
+  });
 
-	class TestComponent extends Component {
-		render({ testStore }) {
-			return createElement('span', null, testStore);
-		}
-	}
+  class TestComponent extends Component {
+    render({ testStore }) {
+      return createElement("span", null, testStore);
+    }
+  }
 
-	/*
+  /*
 	 it('should inject without second argument', () => {
 
 	 class TestComponent extends Component {
@@ -57,63 +55,76 @@ describe('old - MobX inject()', () => {
 	 //expect(tryInject).to.not.throw(Error);
 	 });*/
 
-	it('should fail if store is not provided', () => {
+  it("should fail if store is not provided", () => {
+    function App() {
+      return createElement(
+        Provider,
+        null,
+        createElement(inject("hello")(createElement("span")))
+      );
+    }
 
-		function App() {
-			return createElement(Provider, null, createElement(inject('hello')(createElement('span'))));
-		}
+    // eslint-disable-next-line
+    expect(() => render(App(), container)).toThrow(Error, /is not available!/);
+  });
 
-		// eslint-disable-next-line
-		expect(() => render(App(), container)).to.throw(Error, /is not available!/);
-	});
+  it("should inject stores", () => {
+    function App() {
+      return createElement(
+        Provider,
+        {
+          testStore: "works!"
+        },
+        createElement(inject("testStore")(TestComponent))
+      );
+    }
 
-	it('should inject stores', () => {
+    // eslint-disable-next-line
+    render(App(), container);
+    expect(container.innerHTML).toEqual(innerHTML("<span>works!</span>"));
+  });
 
-		function App() {
-			return createElement(Provider, {
-				testStore: 'works!'
-			}, createElement(inject('testStore')(TestComponent)));
-		}
+  it("should prefer props over stores", () => {
+    function App() {
+      return createElement(
+        Provider,
+        {
+          testStore: "hello"
+        },
+        createElement(inject("testStore")(TestComponent), {
+          testStore: "works!"
+        })
+      );
+    }
 
-		// eslint-disable-next-line
-		render(App(), container);
-		expect(container.innerHTML).toEqual(innerHTML('<span>works!</span>'));
-	});
+    // eslint-disable-next-line
+    render(App(), container);
+    expect(container.innerHTML).toEqual(innerHTML("<span>works!</span>"));
+  });
 
-	it('should prefer props over stores', () => {
+  it("should create class with injected stores", () => {
+    class TestClass extends Component {
+      static defaultProps = {
+        world: "world"
+      };
 
-		function App() {
-			return createElement(Provider, {
-				testStore: 'hello'
-			}, createElement(inject('testStore')(TestComponent), { testStore: 'works!' }));
-		}
+      render({ hello, world }) {
+        return createElement("span", null, hello + " " + world);
+      }
+    }
 
-		// eslint-disable-next-line
-		render(App(), container);
-		expect(container.innerHTML).toEqual(innerHTML('<span>works!</span>'));
-	});
+    function App() {
+      return createElement(
+        Provider,
+        {
+          hello: "hello"
+        },
+        createElement(inject("hello")(TestClass))
+      );
+    }
 
-	it('should create class with injected stores', () => {
-
-		class TestClass extends Component {
-			static defaultProps = {
-				world: 'world'
-			};
-
-			render({ hello, world }) {
-				return createElement('span', null, hello + ' ' + world);
-			}
-		}
-
-		function App() {
-			return createElement(Provider, {
-				hello: 'hello'
-			}, createElement(inject('hello')(TestClass)));
-		}
-
-		// eslint-disable-next-line
-		render(App(), container);
-		expect(container.innerHTML).toEqual(innerHTML('<span>hello world</span>'));
-	});
-
+    // eslint-disable-next-line
+    render(App(), container);
+    expect(container.innerHTML).toEqual(innerHTML("<span>hello world</span>"));
+  });
 });
