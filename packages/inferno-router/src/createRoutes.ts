@@ -40,9 +40,6 @@
  * Usage on Router JSX
  * <Router history={browserHistory} children={routes} />
  */
-/**
- * @module Inferno-Router
- */ /** TypeDoc Comment */
 
 import { IVNode } from "inferno";
 import Component from "inferno-component";

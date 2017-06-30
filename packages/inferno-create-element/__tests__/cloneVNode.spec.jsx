@@ -180,6 +180,7 @@ describe("cloneVNode (JSX)", () => {
     });
 
     render(node3, container);
+
     expect(container.innerHTML).toBe(
       innerHTML('<div class="yo">Hello world 3!</div>')
     );
@@ -200,7 +201,9 @@ describe("cloneVNode (JSX)", () => {
 
     expect(container.innerHTML).toBe("<div>First</div>");
 
-    render(cloneVNode(nodeToClone, { children: "Second" }), container);
+    const node = cloneVNode(nodeToClone, { children: "Second" });
+
+    render(node, container);
 
     expect(container.innerHTML).toBe("<div>Second</div>");
 
@@ -231,7 +234,9 @@ describe("cloneVNode (JSX)", () => {
 
     expect(container.innerHTML).toBe("<div>First</div>");
 
-    render(cloneVNode(nodeToClone, null), container);
+    const cloned = cloneVNode(nodeToClone, null);
+
+    render(cloned, container);
 
     expect(container.innerHTML).toBe("<div>First</div>");
 
@@ -273,7 +278,7 @@ describe("cloneVNode (JSX)", () => {
       });
 
       render(newNode, container);
-      console.log(newNode.props);
+
       expect(newNode.props.hasOwnProperty("className")).toBe(false);
 
       expect(container.firstChild.className).toBe("");
@@ -415,7 +420,6 @@ describe("cloneVNode (JSX)", () => {
         className: null
       });
 
-      console.log(newNode.props);
       expect(newNode.ref).toEqual(initialFunc);
       expect(newNode.props.hasOwnProperty("className")).toBe(false);
       expect(newNode.className).toBe(null);

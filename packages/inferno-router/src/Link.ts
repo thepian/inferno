@@ -1,9 +1,6 @@
 /**
  * @module Inferno-Router
  */ /** TypeDoc Comment */
-/**
- * @module Inferno-Router
- */ /** TypeDoc Comment */
 
 import { createVNode, IVNode } from "inferno";
 import { combineFrom, isBrowser, warning } from "inferno-shared";

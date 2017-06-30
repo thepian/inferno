@@ -1,7 +1,8 @@
-import { isStatefulComponent } from "inferno-shared";
+import { combineFrom, isStatefulComponent, isUndefined } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
 import { normalize } from "./normalization";
 import { options } from "./options";
+import { EMPTY_OBJ } from "../DOM/utils";
 
 export type Ref = (node?: Element | null) => void | null;
 export type InfernoChildren =
@@ -93,7 +94,86 @@ export function createVNode(
   return vNode;
 }
 
-export function cloneVNode() {}
+export function cloneVNode(
+  vNodeToClone: IVNode,
+  props?: Props,
+  ..._children: InfernoChildren[]
+): IVNode {
+  let children: any = _children;
+  const childrenLen = _children.length;
+
+  if (childrenLen > 0) {
+    if (!props) {
+      props = {};
+    }
+    if (childrenLen === 1) {
+      children = _children[0];
+    }
+
+    if (!isUndefined(children)) {
+      props.children = children;
+    }
+  }
+
+  const flags = vNodeToClone.flags;
+  let className = vNodeToClone.className;
+  let key = vNodeToClone.key;
+  let ref = vNodeToClone.ref;
+  const newProps = {} as any;
+  const isElement = (flags & VNodeFlags.Element) > 0;
+
+  if (props) {
+    const propKeys = Object.keys(props);
+
+    for (let i = 0, len = propKeys.length; i < len; i++) {
+      const prop = propKeys[i];
+
+      if (isElement && (prop === "className" || prop === "class")) {
+        className = props[prop];
+      } else if (prop === "key") {
+        key = props[prop];
+      } else if (prop === "ref") {
+        ref = props[prop];
+      } else if (prop === "children") {
+        children = props[prop];
+      } else if (!isElement && prop.substr(0, 11) === "onComponent") {
+        if (!ref) {
+          ref = {};
+        }
+        ref[prop] = props[prop];
+      } else {
+        newProps[prop] = props[prop];
+      }
+    }
+  }
+
+  const vNodeToCloneProps = vNodeToClone.props;
+
+  if (isElement) {
+    children =
+      props && !isUndefined(props.children)
+        ? props.children
+        : vNodeToClone.children;
+  } else {
+    children = null;
+    newProps.children =
+      props && !isUndefined(props.children)
+        ? props.children
+        : vNodeToCloneProps ? vNodeToCloneProps.children : null;
+  }
+
+  return createVNode(
+    flags,
+    vNodeToClone.type,
+    className,
+    children,
+    !vNodeToCloneProps && !props
+      ? EMPTY_OBJ
+      : combineFrom(vNodeToCloneProps, newProps),
+    key,
+    ref
+  );
+}
 
 export function isVNode(o: IVNode): boolean {
   return !!o.flags;
