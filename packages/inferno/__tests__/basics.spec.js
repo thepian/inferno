@@ -1,4 +1,5 @@
 import { render, createVNode } from "inferno";
+import VNodeFlags from 'inferno-vnode-flags';
 
 const comparer = document.createElement("div");
 
