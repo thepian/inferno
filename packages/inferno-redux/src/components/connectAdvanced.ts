@@ -3,7 +3,6 @@
  */ /** TypeDoc Comment */
 
 import { Dispatch, Store } from "redux";
-
 import hoistStatics from "hoist-non-inferno-statics";
 import Component from "inferno-component";
 import createElement from "inferno-create-element";
@@ -40,62 +39,69 @@ const makeSelectorStateful = (sourceSelector, store) => {
 
 export interface IConnectOptions {
   /**
-	 * the func used to compute this HOC's displayName from the wrapped component's displayName.
-	 * probably overridden by wrapper functions such as connect().
-	 *
-	 * @memberOf IConnectOptions
-	 */
+   * the func used to compute this HOC's displayName from the wrapped component's displayName.
+   * probably overridden by wrapper functions such as connect().
+   *
+   * @memberOf IConnectOptions
+   */
   getDisplayName: (name: string) => string;
 
   /**
-	 * shown in error messages.
-	 * probably overridden by wrapper functions such as connect()
-	 *
-	 * @type {string}
-	 * @memberOf IConnectOptions
-	 */
+   * shown in error messages.
+   * probably overridden by wrapper functions such as connect()
+   *
+   * @type {string}
+   * @memberOf IConnectOptions
+   */
   methodName: string;
 
   /**
-	 * if defined, the name of the property passed to the wrapped element indicating the number of
-	 * calls to render. useful for watching in react devtools for unnecessary re-renders.
-	 *
-	 * @type {(string | null)}
-	 * @memberOf IConnectOptions
-	 */
+   * if defined, the name of the property passed to the wrapped element indicating the number of
+   * calls to render. useful for watching in react devtools for unnecessary re-renders.
+   *
+   * @type {(string | null)}
+   * @memberOf IConnectOptions
+   */
   renderCountProp: string | null;
 
   /**
-	 * determines whether this HOC subscribes to store changes.
-	 *
-	 * @type {boolean}
-	 * @memberOf IConnectOptions
-	 */
+   * determines whether this HOC subscribes to store changes.
+   *
+   * @type {boolean}
+   * @memberOf IConnectOptions
+   */
   shouldHandleStateChanges: boolean;
 
   /**
-	 * the key of props/context to get the store.
-	 *
-	 * @type {string}
-	 * @memberOf IConnectOptions
-	 */
+   * the key of props/context to get the store.
+   *
+   * @type {string}
+   * @memberOf IConnectOptions
+   */
   storeKey: string;
 
   /**
-	 * if true, the wrapped element is exposed by this HOC via the getWrappedInstance() function.
-	 *
-	 * @type {boolean}
-	 * @memberOf IConnectOptions
-	 */
+   * if true, the wrapped element is exposed by this HOC via the getWrappedInstance() function.
+   *
+   * @type {boolean}
+   * @memberOf IConnectOptions
+   */
   withRef: boolean;
 
   initMapStateToProps?: any;
+
   initMapDispatchToProps?: any;
+
   initMergeProps?: any;
+
   pure?: any;
+
   areStatesEqual?: any;
+
   areOwnPropsEqual?: any;
+
   areStatePropsEqual?: any;
+
   areMergedPropsEqual?: any;
 }
 
@@ -112,10 +118,14 @@ const invariant = (test: boolean, error: string) => {
   }
 };
 
+function getDefaultName(name) {
+  return `ConnectAdvanced(${name})`;
+}
+
 export function connectAdvanced(
   selectorFactory: SelectorFactory,
   {
-    getDisplayName = name => `ConnectAdvanced(${name})`,
+    getDisplayName = getDefaultName,
     methodName = "connectAdvanced",
     renderCountProp = null,
     shouldHandleStateChanges = true,
@@ -131,7 +141,7 @@ export function connectAdvanced(
     invariant(
       typeof WrappedComponent === "function",
       `You must pass a component to the function returned by ` +
-        `connect. Instead received ${WrappedComponent}`
+      `connect. Instead received ${WrappedComponent}`
     );
 
     const wrappedComponentName: string =
@@ -186,9 +196,9 @@ export function connectAdvanced(
         invariant(
           !!this.store,
           `Could not find "${storeKey}" in either the context or ` +
-            `props of "${displayName}". ` +
-            `Either wrap the root component in a <Provider>, ` +
-            `or explicitly pass "${storeKey}" as a prop to "${displayName}".`
+          `props of "${displayName}". ` +
+          `Either wrap the root component in a <Provider>, ` +
+          `or explicitly pass "${storeKey}" as a prop to "${displayName}".`
         );
 
         this.initSelector();
@@ -250,7 +260,7 @@ export function connectAdvanced(
         invariant(
           withRef,
           `To access the wrapped instance, you need to specify ` +
-            `{ withRef: true } in the options argument of the ${methodName}() call.`
+          `{ withRef: true } in the options argument of the ${methodName}() call.`
         );
 
         return this.wrappedInstance;
@@ -278,7 +288,7 @@ export function connectAdvanced(
         // connected to the store via props shouldn't use subscription from context, or vice versa.
         const parentSub = (this.propsMode ? this.props : this.context)[
           subscriptionKey
-        ];
+          ];
         this.subscription = new Subscription(
           this.store!,
           parentSub,
