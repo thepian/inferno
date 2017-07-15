@@ -118,10 +118,10 @@ function hydrateComponent(
         isSVG
       );
     }
-    // fiber.c = 'stateless';
-    fiber.dom = dom;
 
-    mountFunctionalComponentCallbacks(ref, dom, lifecycle);
+    fiber.dom = dom;
+    mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
+
   }
   return dom;
 }

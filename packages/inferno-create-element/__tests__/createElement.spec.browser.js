@@ -137,6 +137,7 @@ describe("CreateElement (non-JSX)", () => {
     });
 
     render(app, container);
+
     expect(container.innerHTML).toBe(innerHTML("<div>Hooks</div>"));
   });
 

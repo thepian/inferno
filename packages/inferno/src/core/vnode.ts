@@ -21,12 +21,12 @@ export interface Props {
 }
 
 export interface Refs {
-  onComponentDidMount?: (domNode: Element) => void;
-  onComponentWillMount?(): void;
+  onComponentDidMount?: (domNode: Element, nextProps) => void;
+  onComponentWillMount?(nextProps): void;
   onComponentShouldUpdate?(lastProps, nextProps): boolean;
   onComponentWillUpdate?(lastProps, nextProps): void;
   onComponentDidUpdate?(lastProps, nextProps): void;
-  onComponentWillUnmount?(domNode: Element): void;
+  onComponentWillUnmount?(domNode: Element, nextProps): void;
 }
 
 export interface IVNode {

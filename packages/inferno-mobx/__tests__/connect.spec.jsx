@@ -1,6 +1,7 @@
 import Component from "inferno-component";
 import { render } from "inferno";
 import createElement from "inferno-create-element";
+import createClass from "inferno-create-class";
 import { innerHTML } from "inferno-utils";
 import { observer, inject, Provider } from "inferno-mobx";
 
@@ -35,25 +36,21 @@ describe("old - MobX inject()", () => {
     document.body.removeChild(container);
   });
 
-  class TestComponent extends Component {
-    render({ testStore }) {
-      return createElement("span", null, testStore);
+  const TestComponent = ({ testStore }) => {
+    return createElement("span", null, testStore);
+  };
+
+  it("should inject without second argument", () => {
+    class TestComponent extends Component {
+      static defaultProps = { hello: "world" };
+
+      render() {
+        return "Test";
+      }
     }
-  }
-
-  /*
-	 it('should inject without second argument', () => {
-
-	 class TestComponent extends Component {
-	 static defaultProps = { hello: 'world' };
-	 render() {
-	 return 'Test';
-	 }
-	 };
-	 const tryInject = () => inject()(TestComponent);
-	 console.log(createElement(tryInject));
-	 //expect(tryInject).to.not.throw(Error);
-	 });*/
+    const tryInject = () => inject()(TestComponent);
+    expect(tryInject).not.toThrowError(Error);
+  });
 
   it("should fail if store is not provided", () => {
     function App() {
@@ -103,15 +100,14 @@ describe("old - MobX inject()", () => {
   });
 
   it("should create class with injected stores", () => {
-    class TestClass extends Component {
-      static defaultProps = {
-        world: "world"
-      };
-
+    const TestClass = createClass({
+      displayName: "TestClass",
       render({ hello, world }) {
         return createElement("span", null, hello + " " + world);
       }
-    }
+    });
+
+    TestClass.defaultProps = { world: "world" };
 
     function App() {
       return createElement(

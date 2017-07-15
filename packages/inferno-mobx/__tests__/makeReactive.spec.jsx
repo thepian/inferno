@@ -108,7 +108,12 @@ describe("old - MobX Observer", () => {
     str = "test";
 
     expect(scu.call(todoItem, { str })).toBe(false);
-    expect(scu.call(todoItem, { str, prop: "foo" })).toBe(true);
+    expect(
+      scu.call(todoItem, {
+        str,
+        prop: "foo"
+      })
+    ).toBe(true);
 
     const obj = {};
     todoItem = <TodoItem obj={obj} />;

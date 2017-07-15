@@ -13,7 +13,7 @@ import { options } from "../core/options";
 import { Ref, IVNode } from "../core/vnode";
 import { isAttrAnEvent, patchEvent } from "./patching";
 import { componentPools, elementPools, pool } from "./recycling";
-import { removeChild } from "./utils";
+import { EMPTY_OBJ, removeChild } from "./utils";
 import { IFiber } from "../core/fiber";
 import { componentToDOMNodeMap } from "./rendering";
 
@@ -53,6 +53,7 @@ export function unmountComponent(
   const instance = fiber.c;
   const flags = vNode.flags;
   const isStatefulComponent: boolean = (flags & VNodeFlags.ComponentClass) > 0;
+  const props = vNode.props || EMPTY_OBJ;
   const ref = vNode.ref as any;
   const dom = fiber.dom as Element;
   const childFiber = fiber.children as IFiber;
@@ -87,7 +88,7 @@ export function unmountComponent(
     } else {
       if (!isNullOrUndef(ref)) {
         if (isFunction(ref.onComponentWillUnmount)) {
-          ref.onComponentWillUnmount(dom);
+          ref.onComponentWillUnmount(dom, props);
         }
       }
 

@@ -3,7 +3,7 @@
  */ /** TypeDoc Comment */
 
 import {
-  // cloneVNode,
+  cloneVNode,
   createVNode,
   EMPTY_OBJ,
   findDOMNode,
@@ -228,7 +228,7 @@ const injectStringRefs = function(originalFunction) {
 };
 
 const createElement = injectStringRefs(infernoCreateElement);
-// const cloneElement = injectStringRefs(cloneVNode);
+const cloneElement = injectStringRefs(cloneVNode);
 
 const oldCreateVNode = options.createVNode;
 
@@ -331,9 +331,8 @@ if (isBrowser && typeof (window as any).React === "undefined") {
     NO_OP,
     PropTypes,
     PureComponent,
-    // TODO: clone
-    // cloneElement,
-    // cloneVNode,
+    cloneElement,
+    cloneVNode,
     createClass,
     createElement,
     createFactory,
@@ -361,11 +360,10 @@ export {
   EMPTY_OBJ,
   NO_OP,
   PropTypes,
-  PureComponent,
   Refs,
-  // TODO: Clone
-  // cloneElement,
-  // cloneVNode,
+  PureComponent,
+  cloneElement,
+  cloneVNode,
   createClass,
   createElement,
   createFactory,
@@ -386,9 +384,8 @@ export default {
   NO_OP,
   PropTypes,
   PureComponent,
-  // TODO: Clone
-  // cloneElement,
-  // cloneVNode,
+  cloneElement,
+  cloneVNode,
   createClass,
   createElement,
   createFactory,

@@ -98,8 +98,9 @@ export function mountElement(
   context: {},
   isSVG: boolean
 ) {
+  let dom;
   if (options.recyclingEnabled) {
-    const dom = recycleElement(vNode, lifecycle, context, isSVG);
+    dom = recycleElement(vNode, lifecycle, context, isSVG);
 
     if (!isNull(dom)) {
       if (!isNull(parentDom)) {
@@ -111,7 +112,7 @@ export function mountElement(
   const flags = vNode.flags;
 
   isSVG = isSVG || (flags & VNodeFlags.SvgElement) > 0;
-  const dom = documentCreateElement(vNode.type, isSVG);
+  dom = documentCreateElement(vNode.type, isSVG);
   const children = vNode.children;
   const props = vNode.props;
   const className = vNode.className;
@@ -325,7 +326,7 @@ export function mountComponent(
     fiber.dom = dom;
 
     // fiber.input = input;
-    mountFunctionalComponentCallbacks(ref, dom, lifecycle);
+    mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
     if (!isNull(parentDom) && !isNull(dom)) {
       appendChild(parentDom, dom);
     }
@@ -382,16 +383,17 @@ export function mountClassComponentCallbacks(
 }
 
 export function mountFunctionalComponentCallbacks(
+  props,
   ref,
   dom,
   lifecycle: LifecycleClass
 ) {
   if (ref) {
     if (!isNullOrUndef(ref.onComponentWillMount)) {
-      ref.onComponentWillMount();
+      ref.onComponentWillMount(props);
     }
     if (!isNullOrUndef(ref.onComponentDidMount)) {
-      lifecycle.addListener(() => ref.onComponentDidMount(dom));
+      lifecycle.addListener(() => ref.onComponentDidMount(dom, props));
     }
   }
 }

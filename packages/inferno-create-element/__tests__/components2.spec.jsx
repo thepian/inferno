@@ -13,7 +13,6 @@ describe("Components (JSX) #2", () => {
   let renderedName = null;
 
   beforeEach(function() {
-    debugger;
     attachedListener = null;
     renderedName = null;
 
@@ -346,7 +345,6 @@ describe("Components (JSX) #2", () => {
   }
 
   it("should render the component with a key", () => {
-    debugger;
     let val = "1";
 
     render(<Comp key={val} />, container);

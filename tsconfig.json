@@ -28,6 +28,7 @@
 		"preserveConstEnums": true,
 		"outDir": "build",
 		"sourceMap": false,
+    "inlineSourceMap": false,
 		"lib": [
 			"es6",
 			"es7",

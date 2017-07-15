@@ -2,55 +2,55 @@
  * @module Inferno-Mobx
  */ /** TypeDoc Comment */
 
-import Component from 'inferno-component';
-import { warning } from 'inferno-shared';
+import Component from "inferno-component";
+import { warning } from "inferno-shared";
 
 const specialKeys = {
-	children: true,
-	key: true,
-	ref: true
+  children: true,
+  key: true,
+  ref: true
 };
 
 export class Provider extends Component<any, any> {
-	public contextTypes: any = {
-		// tslint:disable-next-line:no-empty
-		mobxStores() {}
-	};
-	public childContextTypes: any = {
-		// tslint:disable-next-line:no-empty
-		mobxStores() {}
-	};
-	private store: any;
+  public contextTypes: any = {
+    // tslint:disable-next-line:no-empty
+    mobxStores() {}
+  };
+  public childContextTypes: any = {
+    // tslint:disable-next-line:no-empty
+    mobxStores() {}
+  };
+  private store: any;
 
-	constructor(props?: any, context?: any) {
-		super(props, context);
-		this.store = props.store;
-	}
+  constructor(props?: any, context?: any) {
+    super(props, context);
+    this.store = props.store;
+  }
 
-	public render() {
-		return this.props.children;
-	}
+  public render() {
+    return this.props.children;
+  }
 
-	public getChildContext() {
-		const stores = {};
-		// inherit stores
-		const baseStores = this.context.mobxStores;
-		if (baseStores) {
-			for (const key in baseStores) {
-				stores[key] = baseStores[key];
-			}
-		}
-		// add own stores
-		for (const key in this.props) {
-			if (!specialKeys[key] && key !== 'suppressChangedStoreWarning') {
-				stores[key] = this.props[key];
-			}
-		}
+  public getChildContext() {
+    const stores = {};
+    // inherit stores
+    const baseStores = this.context.mobxStores;
+    if (baseStores) {
+      for (const key in baseStores) {
+        stores[key] = baseStores[key];
+      }
+    }
+    // add own stores
+    for (const key in this.props) {
+      if (!specialKeys[key] && key !== "suppressChangedStoreWarning") {
+        stores[key] = this.props[key];
+      }
+    }
 
-		return {
-			mobxStores: stores
-		};
-	}
+    return {
+      mobxStores: stores
+    };
+  }
 }
 
 if (process.env.NODE_ENV !== 'production') {
@@ -69,3 +69,4 @@ if (process.env.NODE_ENV !== 'production') {
 		}
 	};
 }
+

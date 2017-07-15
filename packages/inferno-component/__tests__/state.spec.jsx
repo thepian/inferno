@@ -62,17 +62,16 @@ describe("state", () => {
   });
 
   describe("setting state", () => {
-    it("setState should apply state during componentWillReceiveProps", done => {
+    it("Should call ref callback for componentClass", done => {
       const node = createVNode(
         VNodeFlags.ComponentClass,
         TestCWRP,
         null,
         null,
-        { ref: done },
-        null
+        null,
+        null,
+        done
       );
-      render(node, container);
-      node.props.foo = 1;
       render(node, container);
     });
   });
