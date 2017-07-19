@@ -57,6 +57,7 @@ export function unmountComponent(
   const ref = vNode.ref as any;
   const dom = fiber.dom as Element;
   const childFiber = fiber.children as IFiber;
+  const hasChildren = childFiber !== null;
 
   if (!isRecycling) {
     if (isStatefulComponent) {
@@ -75,7 +76,7 @@ export function unmountComponent(
           componentToDOMNodeMap.delete(instance);
         }
 
-        if (!isInvalid(childFiber.input)) {
+        if (hasChildren && !isInvalid(childFiber.input)) {
           unmount(
             childFiber as IFiber,
             null,
@@ -92,7 +93,7 @@ export function unmountComponent(
         }
       }
 
-      if (!isInvalid(childFiber.input)) {
+      if (hasChildren && !isInvalid(childFiber.input)) {
         unmount(childFiber as IFiber, null, lifecycle, false, isRecycling);
       }
     }

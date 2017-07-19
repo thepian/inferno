@@ -77,7 +77,6 @@ describe("setState", () => {
       }
     }
 
-    debugger;
     render(<BaseComp />, container);
   });
 

@@ -110,7 +110,13 @@ export function replaceWithNewNode(
   unmount(fiber, null, lifecycle, false, isRecycling);
   // fiber.children = null;
   const newDom = mount(fiber, nextNode, null, lifecycle, context, isSVG);
-  replaceChild(parentDom, newDom, oldNode);
+
+  if (newDom !== null) {
+    replaceChild(parentDom, newDom, oldNode);
+  } else {
+    removeChild(parentDom, oldNode as Element);
+  }
+
   fiber.dom = newDom;
 }
 
@@ -152,7 +158,7 @@ function removeChildren(
   }
 }
 
-// Reference to global object, rendering was moved there because v8 Chrome 59/60/61 crashed continously
+// Reference to global object, rendering flag was moved there because v8 Chrome 59/60/61 crashed continously
 // to "Oh snap" when using object literal...
 export const G = (typeof window === "undefined" ? global : window) as any;
 Object.defineProperty(G, "INFRender", {

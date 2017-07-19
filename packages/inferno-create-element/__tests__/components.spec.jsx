@@ -1449,18 +1449,19 @@ describe("Components (JSX)", () => {
       expect(container.innerHTML).toBe(
         innerHTML("<div><p>parent</p><div>A</div></div>")
       );
+
       updateChild();
       setTimeout(() => {
         expect(container.innerHTML).toBe(
           innerHTML("<div><p>parent</p><div>B</div></div>")
         );
+
         updateParent();
-        setTimeout(() => {
-          expect(container.innerHTML).toBe(
-            innerHTML("<div><p>parent</p><div>Y</div></div>")
-          );
-          done();
-        }, 10);
+
+        expect(container.innerHTML).toBe(
+          innerHTML("<div><p>parent</p><div>Y</div></div>")
+        );
+        done();
       }, 10);
     });
   });
@@ -1898,55 +1899,53 @@ describe("Components (JSX)", () => {
     }, 10);
   });
 
-  describe("Should be able to swap between invalid node and valid node", () => {
-    it("Should be able to swap between invalid node and valid node", () => {
-      let updater;
+  it("Should be able to swap between invalid node and valid node", () => {
+    let updater;
 
-      class Bar extends Component {
-        constructor(props) {
-          super(props);
+    class Bar extends Component {
+      constructor(props) {
+        super(props);
 
-          this.state = {
-            bool: true
-          };
+        this.state = {
+          bool: true
+        };
 
-          this.changeDOM = this.changeDOM.bind(this);
-          updater = this.changeDOM;
-        }
-
-        changeDOM() {
-          this.setState({
-            bool: !this.state.bool
-          });
-        }
-
-        render() {
-          if (this.state.bool === true) {
-            return null;
-          } else {
-            return <div>Rendered!</div>;
-          }
-        }
+        this.changeDOM = this.changeDOM.bind(this);
+        updater = this.changeDOM;
       }
 
-      render(<Bar />, container);
-      expect(container.innerHTML).toBe("");
+      changeDOM() {
+        this.setState({
+          bool: !this.state.bool
+        });
+      }
 
-      updater();
-      expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
+      render() {
+        if (this.state.bool === true) {
+          return null;
+        } else {
+          return <div>Rendered!</div>;
+        }
+      }
+    }
 
-      updater();
-      expect(container.innerHTML).toBe("");
+    render(<Bar />, container);
+    expect(container.innerHTML).toBe("");
+    
+    updater();
+    expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
 
-      updater();
-      expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
+    updater();
+    expect(container.innerHTML).toBe("");
 
-      updater();
-      expect(container.innerHTML).toBe("");
+    updater();
+    expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
 
-      updater();
-      expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
-    });
+    updater();
+    expect(container.innerHTML).toBe("");
+
+    updater();
+    expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
   });
 
   it("Should be able to swap between text node and html node", () => {

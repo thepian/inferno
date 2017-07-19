@@ -25,6 +25,7 @@ import {
   throwError,
   isInvalid
 } from "inferno-shared";
+import {unmount} from "../../inferno/src/DOM/unmounting";
 
 const C = options.component;
 
@@ -97,17 +98,20 @@ function queueStateChanges<P, S>(
 function createInstance(
   parentFiber: IFiber,
   vNode: IVNode,
-  Component,
+  Class,
   props: Props,
   context: Object,
   isSVG: boolean,
-  lifecycle: LifecycleClass
+  lifecycle: LifecycleClass,
+  parentDom: Element
 ) {
-  const instance = new Component(props, context) as Component<any, any>;
+  const instance = new Class(props, context) as Component<any, any>;
   // vNode.children = instance as any;
   parentFiber.c = instance;
   instance._blockSetState = false;
   instance.context = context;
+  instance._parentNode = parentDom;
+
   if (instance.props === EMPTY_OBJ) {
     instance.props = props;
   }
@@ -251,7 +255,7 @@ function patchComponent(
   if (instance._unmounted) {
     return true;
   } else {
-    fiber.dom = handleUpdate(
+    handleUpdate(
       instance,
       instance.state,
       nextVNode.props || EMPTY_OBJ,
@@ -342,19 +346,10 @@ function handleUpdate(
     // }
 
     // lastVNode: nextVNode: parentDom, lifecycle, context, isSVG, isRecycling
+    const hasContent = !isInvalid(componentRootFiber.input);
 
     if (!isInvalid(nextInput)) {
-      if (isInvalid(componentRootFiber.input)) {
-        // fiber, input, parentDom, lifecycle, context, isSVG
-        mount(
-          componentRootFiber,
-          nextInput as IVNode,
-          parentDom as Element,
-          lifeCycle,
-          childContext,
-          isSVG
-        );
-      } else {
+      if (hasContent) {
         internal_patch(
           componentRootFiber,
           nextInput as IVNode,
@@ -364,7 +359,18 @@ function handleUpdate(
           isSVG,
           isRecycling
         );
+      } else {
+        mount(
+          componentRootFiber,
+          nextInput as IVNode,
+          parentDom as Element,
+          lifeCycle,
+          childContext,
+          isSVG
+        );
       }
+    } else if (hasContent) {
+      unmount(componentRootFiber, parentDom, lifeCycle, false, false);
     }
     componentRootFiber.input = nextInput;
 
@@ -394,13 +400,12 @@ function handleUpdate(
 
   // component._lastInput = nextInput as IVNode;
   // const dom = vNode.dom = (nextInput as IVNode).dom as Element;
-  const dom = component._fiber.dom;
+  component._parentNode = parentDom;
+  const dom = component._fiber.dom = componentRootFiber.dom;
 
   if (options.findDOMNodeEnabled) {
     internal_DOMNodeMap.set(component, dom);
   }
-
-  return dom;
 }
 
 function applyState<P, S>(component: Component<P, S>, force: boolean): void {
@@ -411,8 +416,6 @@ function applyState<P, S>(component: Component<P, S>, force: boolean): void {
     const pendingState = component._pendingState;
     component._pendingSetState = false;
     component._pendingState = null;
-    const fiber = component._fiber;
-
     handleUpdate(
       component,
       combineFrom(component.state, pendingState),
@@ -423,7 +426,7 @@ function applyState<P, S>(component: Component<P, S>, force: boolean): void {
       false,
       component._isSVG,
       component._lifecycle,
-      fiber.dom
+      component._parentNode
     );
   } else {
     component.state = component._pendingState as S;
@@ -502,6 +505,7 @@ export default class Component<P, S> implements ComponentLifecycle<P, S> {
   public _childContext: object | null = null;
   public _isSVG = false;
   public _updating: boolean = true;
+  public _parentNode: Element;
 
   public __FP: boolean = false; // Flush Pending
   public __FCB: Function[] | null = null; // Flush callbacks for this component

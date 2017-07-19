@@ -2005,14 +2005,12 @@ describe("Children - (JSX)", () => {
           );
         }
       }
-
       render(<Wrapper kill={false} />, container);
 
       const unMountSpy = sinon.spy(Wrapper.prototype, "componentWillUnmount");
       const unMountSpy2 = sinon.spy(FooBar.prototype, "componentWillUnmount");
 
       const notCalled = sinon.assert.notCalled;
-
       expect(container.innerHTML).toEqual(
         "<div><span>foobar</span><span><em><pre>aa</pre></em></span></div>"
       );
@@ -2023,7 +2021,6 @@ describe("Children - (JSX)", () => {
         expect(container.innerHTML).toEqual(
           "<div><span>foobar</span><span></span></div>"
         );
-
         notCalled(unMountSpy);
         notCalled(unMountSpy2);
 

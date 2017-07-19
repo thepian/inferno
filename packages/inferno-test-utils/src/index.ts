@@ -1,6 +1,5 @@
-import { render, IVNode } from "inferno";
+import { IVNode, createVNode } from "inferno";
 import Component from "inferno-component";
-import createElement from "inferno-create-element";
 import {
   isArray,
   isFunction,
@@ -10,6 +9,7 @@ import {
   throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
+import { renderToSnapshot, vNodeToSnapshot } from "./jest";
 
 // Type Checkers
 
@@ -119,10 +119,11 @@ export class Wrapper extends Component<any, any> {
 }
 
 export function renderIntoDocument(input): any {
-  const wrappedInput = createElement(Wrapper, null, input);
+  const wrappedInput = createVNode(VNodeFlags.ComponentClass, Wrapper, null, input, null, null, null);
   const parent = document.createElement("div");
   document.body.appendChild(parent);
-  return render(wrappedInput, parent) as any;
+
+  return wrappedInput.children;
 }
 
 // Recursive Finder Functions
@@ -301,8 +302,6 @@ export function getTagNameOfVNode(inst: any) {
     undefined
   );
 }
-
-import { renderToSnapshot, vNodeToSnapshot } from "./jest";
 
 export default {
   findAllInRenderedTree,

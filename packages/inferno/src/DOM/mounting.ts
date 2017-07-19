@@ -283,7 +283,8 @@ export function mountComponent(
       props,
       context,
       isSVG,
-      lifecycle
+      lifecycle,
+      parentDom
     );
     // const input = instance._lastInput;
     fiber.c = instance;
@@ -298,6 +299,7 @@ export function mountComponent(
         isSVG
       );
       if (!isNull(parentDom) && !isNull(dom)) {
+        fiber.dom = dom;
         appendChild(parentDom, dom);
       }
     }
@@ -323,11 +325,11 @@ export function mountComponent(
       );
     }
     // fiber.c = 'stateless';
-    fiber.dom = dom;
 
     // fiber.input = input;
     mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
     if (!isNull(parentDom) && !isNull(dom)) {
+      fiber.dom = dom;
       appendChild(parentDom, dom);
     }
   }

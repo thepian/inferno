@@ -19,8 +19,7 @@ class Comp3 extends Component {
   render() {
     return (
       <em>
-        {["Works", " "]}
-        <span>again</span>!
+        {["Works", " ", <span>again</span>, "!"]}
       </em>
     );
   }

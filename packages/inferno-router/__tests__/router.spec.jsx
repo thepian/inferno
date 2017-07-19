@@ -520,7 +520,8 @@ describe("Router (jsx)", () => {
         history.location.pathname + history.location.search
       );
 
-      const actual = render(<RouterContext {...renderProps} />, container);
+      let actual;
+      render(<RouterContext ref={(i) => actual = i} {...renderProps} />, container);
 
       expect(actual.props.location).toBe("/");
       expect(

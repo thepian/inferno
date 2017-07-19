@@ -67,9 +67,9 @@ export function createVNode(
   children?: InfernoChildren,
   props?: Props | null,
   key?: any,
-  ref?: Ref | Refs
+  ref?: Ref | Refs | null
 ) {
-  if (flags & VNodeFlags.ComponentUnknown) {
+  if ((flags & VNodeFlags.ComponentUnknown) > 0) {
     flags = isStatefulComponent(type)
       ? VNodeFlags.ComponentClass
       : VNodeFlags.ComponentFunction;
