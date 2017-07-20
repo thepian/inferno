@@ -60,7 +60,7 @@ describe("SSR Creation (JSX)", () => {
         <div>
           {[null, "123", null, "456"]}
         </div>,
-      result: "<div><!---->123<!---->456<</div>"
+      result: "<div><!---->123<!---->456</div>"
     },
     {
       description: "should ignore children as props",

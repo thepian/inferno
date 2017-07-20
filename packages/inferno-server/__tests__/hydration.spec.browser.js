@@ -76,13 +76,13 @@ describe("SSR Hydration - (non-JSX)", () => {
     // 	expect2: '<div><em>Works <span>again</span>!</em></div>'
     // }
   ].forEach(({ node, expect1, expect2 }, i) => {
-    it(`Validate various structures #${i + 1}`, () => {
+    it(`Expect various structures #${i + 1}`, () => {
       const html = renderToString(node);
       const container = createContainerWithHTML(html);
 
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect1));
       render(node, container);
-      // expect(validateNodeTree(node)).toBe(true); TODO: Check this its reading DOM from vNode
+
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect2));
       render(node, container);
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect2));

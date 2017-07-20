@@ -148,7 +148,17 @@ function createInstance(
 
   instance._pendingSetState = false;
   instance._fiber = parentFiber;
-  parentFiber.children = new Fiber(handleInput(renderOutput), "0");
+
+  const rootInput = handleInput(renderOutput);
+
+  parentFiber.children = new Fiber(rootInput, "0");
+
+  // if (!isInvalid(rootInput)) {
+  //   if ((rootInput.flags & rootInput.ComponentClass) > 0) {
+  //     rootInput.c._parentNode = parentDom; // Store reference to parentNode, for possible setState
+  //   }
+  // }
+
   return instance;
 }
 
@@ -365,7 +375,8 @@ function handleUpdate(
           parentDom as Element,
           lifeCycle,
           childContext,
-          isSVG
+          isSVG,
+          true
         );
       }
     } else if (hasContent) {

@@ -1,4 +1,4 @@
-import { IVNode, createVNode } from "inferno";
+import { IVNode, createVNode, render } from "inferno";
 import Component from "inferno-component";
 import {
   isArray,
@@ -89,7 +89,7 @@ export function isRenderedClassComponent(instance: any): boolean {
   return (
     Boolean(instance) &&
     isObject(instance) &&
-    isVNode((instance as any)._vNode) &&
+    (instance as any)._fiber &&
     isFunction((instance as any).render) &&
     isFunction((instance as any).setState)
   );
@@ -119,19 +119,24 @@ export class Wrapper extends Component<any, any> {
 }
 
 export function renderIntoDocument(input): any {
+  let instance;
   const wrappedInput = createVNode(
     VNodeFlags.ComponentClass,
     Wrapper,
     null,
     input,
+    {
+      children: input
+    },
     null,
-    null,
-    null
+    i => (instance = i)
   );
   const parent = document.createElement("div");
   document.body.appendChild(parent);
 
-  return wrappedInput.children;
+  render(wrappedInput, parent);
+
+  return instance;
 }
 
 // Recursive Finder Functions
@@ -211,24 +216,23 @@ function findOneOf(
 // Scry Utilities
 
 // export function scryRenderedDOMElementsWithClass(renderedTree: any, classNames: string | string[]): Element[] {
-//   // TODO: How to do this with Fibers?
-// 	// return findAllInRenderedTree(renderedTree, (instance) => {
-// 	// 	if (isDOMVNode(instance)) {
-// 	// 		let domClassName = (instance.dom as Element).className;
-// 	// 		if (
-// 	// 			!isString(domClassName) &&
-// 	// 			!isNullOrUndef(instance.dom) &&
-// 	// 			isFunction(instance.dom.getAttribute)
-// 	// 		) { // SVG || null, probably
-// 	// 			domClassName = (instance.dom as Element).getAttribute('class') || '';
-// 	// 		}
-// 	// 		const domClassList = parseSelector(domClassName);
-// 	// 		return parseSelector(classNames).every((className) => {
-// 	// 			return domClassList.indexOf(className) !== -1;
-// 	// 		});
-// 	// 	}
-// 	// 	return false;
-// 	// }).map((instance) => instance.dom);
+// 	return findAllInRenderedTree(renderedTree, (instance) => {
+// 		if (isDOMVNode(instance)) {
+// 			let domClassName = (instance.dom as Element).className;
+// 			if (
+// 				!isString(domClassName) &&
+// 				!isNullOrUndef(instance.dom) &&
+// 				isFunction(instance.dom.getAttribute)
+// 			) { // SVG || null, probably
+// 				domClassName = (instance.dom as Element).getAttribute('class') || '';
+// 			}
+// 			const domClassList = parseSelector(domClassName);
+// 			return parseSelector(classNames).every((className) => {
+// 				return domClassList.indexOf(className) !== -1;
+// 			});
+// 		}
+// 		return false;
+// 	}).map((instance) => instance.dom);
 // }
 
 export function scryRenderedDOMElementsWithClass() {}

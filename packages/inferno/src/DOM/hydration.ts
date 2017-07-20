@@ -81,11 +81,13 @@ function hydrateComponent(
       props,
       context,
       isSVG,
-      lifecycle
+      lifecycle,
+      dom
     );
     fiber.c = instance;
     instance._vNode = vNode;
     childFiber = fiber.children as IFiber;
+
     if (!isInvalid(childFiber.input)) {
       // TODO: Can input be string?
       childFiber.dom = hydrate(
@@ -150,7 +152,15 @@ function hydrateElement(
       );
     }
 
-    const newDom = mountElement(fiber, vNode, null, lifecycle, context, isSVG);
+    const newDom = mountElement(
+      fiber,
+      vNode,
+      dom,
+      lifecycle,
+      context,
+      isSVG,
+      false
+    );
     fiber.dom = newDom;
     replaceChild(dom.parentNode, newDom, dom);
 
@@ -174,7 +184,7 @@ function hydrateElement(
       patchProp(prop, null, props[prop], dom, isSVG, hasControlledValue);
     }
     if (isFormElement) {
-      processElement(flags, vNode, dom, props, true, hasControlledValue);
+      processElement(fiber, flags, dom, props, true, hasControlledValue);
     }
   }
   if (!isNullOrUndef(className)) {
@@ -244,7 +254,7 @@ export function hydrateArrayChildren(
         }
 
         if (isNull(dom)) {
-          mount(childFiber, child, parentDOM, lifecycle, context, isSVG);
+          mount(childFiber, child, parentDOM, lifecycle, context, isSVG, true);
         } else {
           const nextSibling = dom.nextSibling;
           hydrate(
@@ -324,7 +334,8 @@ function hydrateChildren(
         parentDom,
         lifecycle,
         context,
-        isSVG
+        isSVG,
+        true
       );
     }
   }
@@ -340,7 +351,7 @@ function hydrateChildren(
 function hydrateText(fiber: IFiber, text: string, dom: Element): Element {
   fiber.input = text;
   if (dom.nodeType !== 3) {
-    const newDom = mountText(fiber, text, null);
+    const newDom = mountText(fiber, text, null, false);
 
     fiber.dom = newDom;
     replaceChild(dom.parentNode, newDom, dom);

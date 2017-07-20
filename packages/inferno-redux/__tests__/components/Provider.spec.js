@@ -92,6 +92,7 @@ describe("redux", () => {
       }
 
       const tree = renderIntoDocument(<ProviderContainer />);
+      debugger;
       const container = findRenderedVNodeWithType(tree, ProviderContainer)
         .children;
       const child = findRenderedVNodeWithType(tree, Child).children;

@@ -109,7 +109,15 @@ export function replaceWithNewNode(
   const oldNode = fiber.dom;
   unmount(fiber, null, lifecycle, false, isRecycling);
   // fiber.children = null;
-  const newDom = mount(fiber, nextNode, null, lifecycle, context, isSVG);
+  const newDom = mount(
+    fiber,
+    nextNode,
+    parentDom,
+    lifecycle,
+    context,
+    isSVG,
+    false
+  );
 
   if (newDom !== null) {
     replaceChild(parentDom, newDom, oldNode);

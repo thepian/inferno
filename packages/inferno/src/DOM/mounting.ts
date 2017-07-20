@@ -32,20 +32,29 @@ import { componentToDOMNodeMap } from "./rendering";
 export function mount(
   fiber: IFiber,
   input: IVNode | string | number,
-  parentDom: Element | null,
+  parentDom: Element,
   lifecycle: LifecycleClass,
   context: Object,
-  isSVG: boolean
+  isSVG: boolean,
+  insertIntoDOM: boolean
 ) {
   // Text - Number
   if (isStringOrNumber(input)) {
-    return mountText(fiber, input, parentDom);
+    return mountText(fiber, input, parentDom, insertIntoDOM);
   } else {
     // VNode
     const flags = (input as IVNode).flags;
 
     if ((flags & VNodeFlags.Element) > 0) {
-      return mountElement(fiber, input, parentDom, lifecycle, context, isSVG);
+      return mountElement(
+        fiber,
+        input,
+        parentDom,
+        lifecycle,
+        context,
+        isSVG,
+        insertIntoDOM
+      );
     } else if ((flags & VNodeFlags.Component) > 0) {
       return mountComponent(
         fiber,
@@ -54,7 +63,8 @@ export function mount(
         lifecycle,
         context,
         isSVG,
-        (flags & VNodeFlags.ComponentClass) > 0
+        (flags & VNodeFlags.ComponentClass) > 0,
+        insertIntoDOM
       );
     } else {
       if (process.env.NODE_ENV !== "production") {
@@ -78,11 +88,12 @@ export function mount(
 export function mountText(
   fiber: IFiber,
   text: string | number,
-  parentDom: Element | null
+  parentDom: Element | null,
+  insertIntoDom: boolean
 ): any {
   const dom = document.createTextNode(text as string) as any;
 
-  if (!isNull(parentDom)) {
+  if (insertIntoDom) {
     fiber.dom = dom;
     appendChild(parentDom, dom);
   }
@@ -96,14 +107,15 @@ export function mountElement(
   parentDom: Element | null,
   lifecycle: LifecycleClass,
   context: {},
-  isSVG: boolean
+  isSVG: boolean,
+  insertIntoDom: boolean
 ) {
   let dom;
   if (options.recyclingEnabled) {
     dom = recycleElement(vNode, lifecycle, context, isSVG);
 
     if (!isNull(dom)) {
-      if (!isNull(parentDom)) {
+      if (insertIntoDom) {
         appendChild(parentDom, dom);
       }
       return dom;
@@ -149,7 +161,8 @@ export function mountElement(
           dom,
           lifecycle,
           context,
-          childrenIsSVG
+          childrenIsSVG,
+          true
         );
       }
     }
@@ -165,7 +178,7 @@ export function mountElement(
       patchProp(prop, null, props[prop], dom, isSVG, hasControlledValue);
     }
     if (isFormElement) {
-      processElement(flags, vNode, dom, props, true, hasControlledValue);
+      processElement(fiber, flags, dom, props, true, hasControlledValue);
     }
   }
 
@@ -180,7 +193,7 @@ export function mountElement(
   if (!isNull(ref)) {
     mountRef(dom, ref, lifecycle);
   }
-  if (!isNull(parentDom)) {
+  if (insertIntoDom) {
     fiber.dom = dom;
     appendChild(parentDom, dom);
   }
@@ -238,7 +251,7 @@ export function mountArrayChildren(
         if (isKeyed) {
           fiber.childrenKeys.set(child.key, counter++);
         }
-        mount(childFiber, child, dom, lifecycle, context, isSVG);
+        mount(childFiber, child, dom, lifecycle, context, isSVG, true);
       }
     }
   }
@@ -249,18 +262,19 @@ const C = options.component;
 export function mountComponent(
   fiber: IFiber,
   vNode: IVNode,
-  parentDom: Element | null,
+  parentDom: Element,
   lifecycle: LifecycleClass,
   context: Object,
   isSVG: boolean,
-  isClass: boolean
+  isClass: boolean,
+  insertIntoDom: boolean
 ) {
   let dom = null;
   if (options.recyclingEnabled) {
     dom = recycleComponent(vNode, lifecycle, context, isSVG);
 
     if (!isNull(dom)) {
-      if (!isNull(parentDom)) {
+      if (insertIntoDom) {
         appendChild(parentDom, dom);
       }
 
@@ -291,12 +305,13 @@ export function mountComponent(
       childFiber.dom = dom = mount(
         childFiber,
         childFiber.input,
-        null,
+        parentDom,
         lifecycle,
         instance._childContext,
-        isSVG
+        isSVG,
+        false
       );
-      if (!isNull(parentDom) && !isNull(dom)) {
+      if (insertIntoDom && !isNull(dom)) {
         fiber.dom = dom;
         appendChild(parentDom, dom);
       }
@@ -316,17 +331,18 @@ export function mountComponent(
       childFiber.dom = dom = mount(
         childFiber,
         input,
-        null,
+        parentDom,
         lifecycle,
         context,
-        isSVG
+        isSVG,
+        false
       );
     }
     // fiber.c = 'stateless';
 
     // fiber.input = input;
     mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
-    if (!isNull(parentDom) && !isNull(dom)) {
+    if (insertIntoDom && !isNull(dom)) {
       fiber.dom = dom;
       appendChild(parentDom, dom);
     }

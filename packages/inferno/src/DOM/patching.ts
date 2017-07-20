@@ -8,7 +8,6 @@ import {
   isStringOrNumber,
   LifecycleClass,
   NO_OP,
-  isNull,
   throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
@@ -71,7 +70,7 @@ export function patch(
         replaceDOM(
           fiber,
           parentDom,
-          mountText(fiber, nextInput, null),
+          mountText(fiber, nextInput, null, false),
           lifecycle,
           isRecycling
         );
@@ -80,7 +79,7 @@ export function patch(
       replaceDOM(
         fiber,
         parentDom,
-        mount(fiber, nextInput, null, lifecycle, context, isSVG),
+        mount(fiber, nextInput, parentDom, lifecycle, context, isSVG, false),
         lifecycle,
         isRecycling
       );
@@ -105,7 +104,15 @@ export function patch(
           replaceDOM(
             fiber,
             parentDom,
-            mountElement(fiber, nextInput, null, lifecycle, context, isSVG),
+            mountElement(
+              fiber,
+              nextInput,
+              parentDom,
+              lifecycle,
+              context,
+              isSVG,
+              false
+            ),
             lifecycle,
             isRecycling
           );
@@ -132,11 +139,12 @@ export function patch(
             mountComponent(
               fiber,
               nextInput,
-              null,
+              parentDom,
               lifecycle,
               context,
               isSVG,
-              isClass
+              isClass,
+              false
             ),
             lifecycle,
             isRecycling
@@ -241,8 +249,8 @@ export function patchElement(
         if (isFormElement) {
           // When inferno is recycling form element, we need to process it like it would be mounting
           processElement(
+            fiber,
             nextFlags,
-            nextVNode,
             dom,
             nextPropsOrEmpty,
             isRecycling,
@@ -332,7 +340,8 @@ function patchChildren(
           dom,
           lifecycle,
           context,
-          isSVG
+          isSVG,
+          true
         );
       }
     }
@@ -376,7 +385,8 @@ function patchChildren(
       dom,
       lifecycle,
       context,
-      isSVG
+      isSVG,
+      true
     );
   } else {
     // next is input, last is input
@@ -489,20 +499,22 @@ export function patchComponent(
           isRecycling
         )
       ) {
-        if (isNull(parentDom)) {
-          return true;
-        }
+        // TODO: WHat is this?
+        // if (isNull(parentDom)) {
+        //   return true;
+        // }
         const lastDOM = fiber.dom;
         replaceChild(
           parentDom,
           mountComponent(
             fiber,
             nextVNode,
-            null,
+            parentDom,
             lifecycle,
             context,
             isSVG,
-            (nextVNode.flags & VNodeFlags.ComponentClass) > 0
+            (nextVNode.flags & VNodeFlags.ComponentClass) > 0,
+            false
           ),
           lastDOM
         );
@@ -560,7 +572,8 @@ export function patchComponent(
                 parentDom,
                 lifecycle,
                 context,
-                isSVG
+                isSVG,
+                true
               );
             } else {
               patch(
@@ -634,7 +647,7 @@ export function patchNonKeyedChildren(
             if (lastFibersLength <= fiberCnt) {
               // Always mount and add to end
               fiber = new Fiber(child, fiberKey);
-              mount(fiber, child, dom, lifecycle, context, isSVG);
+              mount(fiber, child, dom, lifecycle, context, isSVG, true);
               childFibers.push(fiber);
             } else {
               fiber = childFibers[fiberCnt++];
@@ -657,7 +670,7 @@ export function patchNonKeyedChildren(
                 fiberCnt--;
               } else {
                 fiber = new Fiber(child, fiberKey);
-                mount(fiber, child, dom, lifecycle, context, isSVG);
+                mount(fiber, child, dom, lifecycle, context, isSVG, true);
                 tmp = fiberCnt - 1;
                 nextFiber = tmp < lastFibersLength ? childFibers[tmp] : null;
 
@@ -735,10 +748,11 @@ export function patchKeyedChildren(
       const newDom = mount(
         iteratedFiber,
         nextChild,
-        null,
+        dom,
         lifecycle,
         context,
-        isSVG
+        isSVG,
+        false
       );
       iteratedFiber.dom = newDom;
       insertOrAppend(dom, newDom, referenceNode);

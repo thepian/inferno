@@ -21,6 +21,7 @@ function createSnapshotObject(object: object) {
 
 export function vNodeToSnapshot(node: IVNode) {
   let object;
+  debugger;
   const children: any[] = [];
   if (isDOMVNode(node)) {
     const props = { className: node.className || undefined, ...node.props };
@@ -71,10 +72,10 @@ export function vNodeToSnapshot(node: IVNode) {
 
 export function renderToSnapshot(input: IVNode) {
   const wrapper = renderIntoDocument(input);
-  const vnode = wrapper.props.children;
 
   if (!isNull(wrapper.props)) {
-    const snapshot = vNodeToSnapshot(vnode.children as IVNode);
+    const vnode = wrapper.props.children;
+    const snapshot = vNodeToSnapshot(vnode as IVNode);
     delete snapshot.props.children;
     return snapshot;
   }

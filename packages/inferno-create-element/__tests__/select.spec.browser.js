@@ -16,7 +16,7 @@ describe("Select / select multiple (non-JSX)", () => {
     document.body.removeChild(container);
   });
 
-  it('should render "select" boolean on select options with numbers', () => {
+  it('should render "select" boolean on select options with numbers #2', () => {
     const template = val =>
       createElement(
         "select",

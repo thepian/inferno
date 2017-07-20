@@ -1872,6 +1872,7 @@ describe("Inferno", () => {
       await tree.repaint();
       expect(childMapStateInvokes).toBe(2);
 
+      debugger;
       const container = findRenderedVNodeWithType(tree, Container).children;
       const button = container.getWrappedInstance().button;
       button.click();

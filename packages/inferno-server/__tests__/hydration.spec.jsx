@@ -1143,7 +1143,10 @@ describe("SSR Hydration - (JSX)", () => {
       }
     ].forEach(
       ({ SSR, CSR, CSR2, SSR_expected, CSR_expected, CSR2_expected }, i) => {
-        it(`#2# Validate various structures #${i + 1}`, () => {
+        it(`Verify various structures #${i + 1}`, () => {
+          if (i === 17) {
+            debugger;
+          }
           const ssrString = renderToString(SSR);
           const SsrContainer = createContainerWithHTML(ssrString);
 
