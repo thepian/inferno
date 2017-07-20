@@ -1,6 +1,8 @@
 /**
  * @module Inferno
- */ /** TypeDoc Comment */
+ */
+
+/** TypeDoc Comment */
 
 export const xlinkNS = "http://www.w3.org/1999/xlink";
 export const xmlNS = "http://www.w3.org/XML/1998/namespace";
@@ -87,6 +89,7 @@ skipProps.add("ref");
 skipProps.add("key");
 skipProps.add("checked");
 skipProps.add("multiple");
+skipProps.add("className");
 
 export const delegatedEvents = new Set<string>();
 delegatedEvents.add("onClick");

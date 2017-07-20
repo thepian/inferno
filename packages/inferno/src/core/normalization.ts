@@ -45,7 +45,7 @@ export function normalize(vNode: IVNode): void {
 
   // convert a wrongly created type back to element
   // Primitive node doesn't have defaultProps, only Component
-  if (vNode.flags & VNodeFlags.Component) {
+  if ((vNode.flags & VNodeFlags.Component) > 0) {
     // set default props
     const type = vNode.type;
     const defaultProps = (type as any).defaultProps;
@@ -67,6 +67,19 @@ export function normalize(vNode: IVNode): void {
       if (props && props.children) {
         vNode.children = props.children;
         children = props.children;
+      }
+    }
+  } else {
+    if (props) {
+      if (vNode.className === null) {
+        vNode.className = props.hasOwnProperty("className")
+          ? props.className
+          : null;
+      }
+      if (vNode.children === null) {
+        vNode.children = props.hasOwnProperty("children")
+          ? props.children
+          : null;
       }
     }
   }

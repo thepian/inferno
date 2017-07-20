@@ -51,6 +51,7 @@ describe("redux", () => {
         );
         expect(spy.callCount).toEqual(0);
 
+        debugger;
         const child = findRenderedVNodeWithType(tree, Child).children;
         expect(child.context.store).toBe(store1);
       });

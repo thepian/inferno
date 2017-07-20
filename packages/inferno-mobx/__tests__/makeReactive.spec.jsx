@@ -51,7 +51,7 @@ describe("old - MobX Observer", () => {
   );
 
   it("should render a component", () => {
-    expect(() => render(<TodoList />, container)).to.not.throw(Error);
+    expect(() => render(<TodoList />, container)).not.toThrow(Error);
   });
 
   it("should render a todo list", () => {

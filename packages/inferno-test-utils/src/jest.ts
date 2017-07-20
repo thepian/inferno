@@ -5,6 +5,7 @@
 import { IVNode } from "inferno";
 import { isArray, isNull, isObject, isString } from "inferno-shared";
 import { getTagNameOfVNode, isDOMVNode, renderIntoDocument } from "./index";
+import VNodeFlags from "inferno-vnode-flags";
 
 // Jest Snapshot Utilities
 // Jest formats it's snapshots prettily because it knows how to play with the React test renderer.
@@ -39,18 +40,20 @@ export function vNodeToSnapshot(node: IVNode) {
       type: getTagNameOfVNode(node)
     });
   }
+  const _children =
+    node.flags & VNodeFlags.Component ? node.props ? node.props.children : null : node.children;
 
-  if (isArray(node.children)) {
-    node.children.forEach(child => {
+  if (isArray(_children)) {
+    _children.forEach(child => {
       const asJSON = vNodeToSnapshot(child as IVNode);
       if (asJSON) {
         children.push(asJSON);
       }
     });
-  } else if (isString(node.children)) {
-    children.push(node.children);
-  } else if (isObject(node.children) && !isNull(node.children)) {
-    const asJSON = vNodeToSnapshot(node.children);
+  } else if (isString(_children)) {
+    children.push(_children);
+  } else if (isObject(_children) && !isNull(_children)) {
+    const asJSON = vNodeToSnapshot(_children);
     if (asJSON) {
       children.push(asJSON);
     }

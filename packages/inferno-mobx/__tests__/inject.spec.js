@@ -127,7 +127,7 @@ describe("observer based context", () => {
           <B />
         </Provider>
     });
-    expect(() => render(<A />)).toThrowError(/Store 'foo' is not available/i);
+    expect(() => render(<A />)).toThrowError(/Store "foo" is not available/i);
   });
 
   it("store is not required if prop is available", () => {

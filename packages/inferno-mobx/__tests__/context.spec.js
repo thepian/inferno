@@ -120,7 +120,7 @@ describe("observer based context", () => {
       </Provider>;
 
     expect(() => render(<A />)).toThrowError(
-      /Store 'foo' is not available! Make sure it is provided by some Provider/
+      /Store "foo" is not available! Make sure it is provided by some Provider/
     );
   });
 

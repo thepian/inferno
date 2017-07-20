@@ -1140,7 +1140,7 @@ describe("Elements (JSX)", () => {
     });
   });
 
-  describe("should correctly handle TEXT VNodes as quasi-immutable objects, like ReactElement does", () => {
+  describe("should correctly handle nodes as quasi-immutable objects, like ReactElement does", () => {
     const a = createVNode(VNodeFlags.HtmlElement, "div", null, "Hello world");
     const b = createVNode(VNodeFlags.HtmlElement, "div", null, "This works!");
     const C = ({ children }) =>
@@ -1164,8 +1164,8 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>Hello worldHello worldHello world</div>")
+      expect(container.textContent).toBe(
+        innerHTML("<div>Hello worldHello worldHello world</div>").textContent
       );
       render(b, container);
       expect(container.innerHTML).toBe(innerHTML("This works!"));
@@ -1179,8 +1179,8 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>Hello worldThis works!</div>")
+      expect(container.textContent).toBe(
+        innerHTML("<div>Hello worldThis works!</div>").textContent
       );
       render(
         <div>
@@ -1189,8 +1189,8 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>This works!Hello world</div>")
+      expect(container.textContent).toBe(
+        innerHTML("<div>This works!Hello world</div>").textContent
       );
     });
 
@@ -1201,8 +1201,8 @@ describe("Elements (JSX)", () => {
         </C>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>Hello worldHello worldHello world</div>")
+      expect(container.textContent).toBe(
+        innerHTML("<div>Hello worldHello worldHello world</div>").textContent
       );
       render(
         <C>
@@ -1211,10 +1211,10 @@ describe("Elements (JSX)", () => {
         </C>,
         container
       );
-      expect(container.innerHTML).toBe(
+      expect(container.textContent).toBe(
         innerHTML(
           "<div>This works!Hello worldThis works!Hello worldThis works!Hello world</div>"
-        )
+        ).textContent
       );
     });
   });

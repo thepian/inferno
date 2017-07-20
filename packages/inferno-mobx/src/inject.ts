@@ -76,9 +76,7 @@ function grabStoresByName(storeNames) {
 
       if (!(storeName in baseStores)) {
         throw new Error(
-          'MobX observer: Store "' +
-            storeName +
-            '" is not available! Make sure it is provided by some Provider'
+          `MobX observer: Store "${storeName}" is not available! Make sure it is provided by some Provider`
         );
       }
 

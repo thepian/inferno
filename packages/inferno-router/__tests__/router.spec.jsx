@@ -452,8 +452,13 @@ describe("Router (jsx)", () => {
     it("should pass when `location` is provided", () => {
       const url = "/";
       const matched = <GoodComponent />;
-      const actual = render(
-        <RouterContext location={url} matched={matched} />,
+      let actual;
+      render(
+        <RouterContext
+          ref={i => (actual = i)}
+          location={url}
+          matched={matched}
+        />,
         container
       );
       expect(actual.props.location).toBe(url);
@@ -462,8 +467,13 @@ describe("Router (jsx)", () => {
     it("should pass when `location` is provided and has percent encoded value", () => {
       const url = "/100%25";
       const matched = <GoodComponent />;
-      const actual = render(
-        <RouterContext location={url} matched={matched} />,
+      let actual;
+      render(
+        <RouterContext
+          ref={i => (actual = i)}
+          location={url}
+          matched={matched}
+        />,
         container
       );
       expect(actual.props.location).toBe(url);
@@ -488,12 +498,16 @@ describe("Router (jsx)", () => {
         history.location.pathname + history.location.search
       );
 
-      const actual = render(<RouterContext {...renderProps} />, container);
+      let actual;
+      render(
+        <RouterContext ref={i => (actual = i)} {...renderProps} />,
+        container
+      );
 
       expect(actual.props.location).toBe("/");
       expect(
         actual.props.matched.props.history.location.pathname +
-        actual.props.matched.props.history.location.search
+          actual.props.matched.props.history.location.search
       ).toBe("/search/foo?arg1=50%25");
       expect(actual.props.matched.props.params.searchData).toBe("foo");
       expect(actual.props.matched.props.params.arg1).toBe("50%");
@@ -521,12 +535,15 @@ describe("Router (jsx)", () => {
       );
 
       let actual;
-      render(<RouterContext ref={(i) => actual = i} {...renderProps} />, container);
+      render(
+        <RouterContext ref={i => (actual = i)} {...renderProps} />,
+        container
+      );
 
       expect(actual.props.location).toBe("/");
       expect(
         actual.props.matched.props.history.location.pathname +
-        actual.props.matched.props.history.location.search
+          actual.props.matched.props.history.location.search
       ).toBe("/search/100%?arg1=50%25");
       expect(actual.props.matched.props.params.searchData).toBe("100%");
       expect(actual.props.matched.props.params.arg1).toBe("50%");
@@ -553,12 +570,16 @@ describe("Router (jsx)", () => {
         history.location.pathname + history.location.search
       );
 
-      const actual = render(<RouterContext {...renderProps} />, container);
+      let actual;
+      render(
+        <RouterContext ref={i => (actual = i)} {...renderProps} />,
+        container
+      );
 
       expect(actual.props.location).toBe("/");
       expect(
         actual.props.matched.props.history.location.pathname +
-        actual.props.matched.props.history.location.search
+          actual.props.matched.props.history.location.search
       ).toBe("/search/100%?arg1=50%25&arg1=75%25");
       expect(actual.props.matched.props.params.searchData).toBe("100%");
       expect(actual.props.matched.props.params.arg1[0]).toBe("50%");

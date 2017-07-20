@@ -124,7 +124,7 @@ export function renderIntoDocument(input): any {
     VNodeFlags.ComponentClass,
     Wrapper,
     null,
-    input,
+    null,
     {
       children: input
     },
@@ -160,7 +160,10 @@ export function findAllInVNodeTree(
 ): any {
   if (isVNode(vNodeTree)) {
     let result: IVNode[] = predicate(vNodeTree) ? [vNodeTree] : [];
-    const children: any = vNodeTree.children;
+    const children: any =
+      (vNodeTree.flags & VNodeFlags.Component) > 0
+        ? vNodeTree.props ? vNodeTree.props.children : null
+        : vNodeTree.children;
 
     if (isRenderedClassComponent(children)) {
       result = result.concat(
