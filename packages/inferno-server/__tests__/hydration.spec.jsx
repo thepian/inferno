@@ -409,9 +409,6 @@ describe("SSR Hydration - (JSX)", () => {
     }
   ].forEach(({ node, expect1, node2, node3, expect2, expect3 }, i) => {
     it(`Update various structures #${i + 1}`, () => {
-      if (i === 7) {
-        debugger;
-      }
       const html = renderToString(node);
       const container = createContainerWithHTML(html);
 
