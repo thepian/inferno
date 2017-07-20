@@ -1,5 +1,6 @@
 import { cloneVNode, render } from "inferno";
 import { innerHTML } from "inferno-utils";
+import Component from "inferno-component";
 
 // React Fiddle for Cloning https://jsfiddle.net/es4u02jv/
 describe("cloneVNode (JSX)", () => {
@@ -161,12 +162,59 @@ describe("cloneVNode (JSX)", () => {
     );
   });
 
-  function StatelessComponent(props) {
-    return <div {...props} />;
+  function StatelessComponent({ children, className, props }) {
+    return (
+      <div className={className} {...props}>
+        {children}
+      </div>
+    );
   }
 
   it("should clone a basic stateless component with different children and props", () => {
-    const node1 = <StatelessComponent children="Hello world" />;
+    const node1 = (
+      <StatelessComponent>
+        {"Hello world"}
+      </StatelessComponent>
+    );
+
+    render(node1, container);
+    expect(container.innerHTML).toBe(innerHTML("<div>Hello world</div>"));
+    const node2 = cloneVNode(node1, { children: "Hello world 2!" });
+
+    render(node2, container);
+    expect(container.innerHTML).toBe(innerHTML("<div>Hello world 2!</div>"));
+    const node3 = cloneVNode(node1, {
+      children: "Hello world 3!",
+      className: "yo"
+    });
+
+    render(node3, container);
+
+    expect(container.innerHTML).toBe(
+      innerHTML('<div class="yo">Hello world 3!</div>')
+    );
+  });
+
+  class Es6Component extends Component {
+    constructor(props, context) {
+      super(props, context);
+    }
+
+    render({ children, className, ...props }) {
+      return (
+        <div className={className} {...props}>
+          {children}
+        </div>
+      );
+    }
+  }
+
+  it("should clone a basic es6 component with different children and props", () => {
+    const node1 = (
+      <Es6Component>
+        {"Hello world"}
+      </Es6Component>
+    );
 
     render(node1, container);
     expect(container.innerHTML).toBe(innerHTML("<div>Hello world</div>"));

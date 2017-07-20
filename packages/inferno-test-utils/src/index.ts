@@ -119,7 +119,15 @@ export class Wrapper extends Component<any, any> {
 }
 
 export function renderIntoDocument(input): any {
-  const wrappedInput = createVNode(VNodeFlags.ComponentClass, Wrapper, null, input, null, null, null);
+  const wrappedInput = createVNode(
+    VNodeFlags.ComponentClass,
+    Wrapper,
+    null,
+    input,
+    null,
+    null,
+    null
+  );
   const parent = document.createElement("div");
   document.body.appendChild(parent);
 
@@ -133,7 +141,7 @@ export function findAllInRenderedTree(
   predicate: (vNode: IVNode) => boolean
 ): IVNode[] | any {
   if (isRenderedClassComponent(renderedTree)) {
-    return findAllInVNodeTree(renderedTree._lastInput, predicate);
+    return findAllInVNodeTree(renderedTree._fiber.input, predicate);
   } else {
     throwError(
       "findAllInRenderedTree(renderedTree, predicate) renderedTree must be a rendered class component"
@@ -151,7 +159,7 @@ export function findAllInVNodeTree(
 
     if (isRenderedClassComponent(children)) {
       result = result.concat(
-        findAllInVNodeTree(children._lastInput, predicate) as IVNode[]
+        findAllInVNodeTree(children._fiber.input, predicate) as IVNode[]
       );
     } else if (isVNode(children)) {
       result = result.concat(

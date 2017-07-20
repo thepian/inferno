@@ -1,9 +1,6 @@
 /**
  * @module Inferno-Utils
  */ /** TypeDoc Comment */
-import { isArray, isNullOrUndef, isStringOrNumber } from "inferno-shared";
-import VNodeFlags from "inferno-vnode-flags";
-
 const comparer = document.createElement("div");
 
 export function sortAttributes(html: string): string {
@@ -48,41 +45,6 @@ export function createContainerWithHTML(html: string): HTMLDivElement {
 
   container.innerHTML = html;
   return container;
-}
-
-export function validateNodeTree(node: any): boolean {
-  if (!node) {
-    return true;
-  }
-  if (isStringOrNumber(node)) {
-    return true;
-  }
-  if (!node.dom) {
-    return false;
-  }
-  const children = node.children;
-  const flags = node.flags;
-
-  if (flags & VNodeFlags.Element) {
-    if (!isNullOrUndef(children)) {
-      if (isArray(children)) {
-        for (const child of children) {
-          const val = validateNodeTree(child);
-
-          if (!val) {
-            return false;
-          }
-        }
-      } else {
-        const val = validateNodeTree(children);
-
-        if (!val) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
 }
 
 export function waits(timer: number, done: () => void) {

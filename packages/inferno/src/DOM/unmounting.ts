@@ -101,11 +101,6 @@ export function unmountComponent(
 
   fiber.children = null;
   if (parentDom && !isNull(dom)) {
-    // let lastInput = instance._lastInput;
-    //
-    // if (isNullOrUndef(lastInput)) {
-    // 	lastInput = instance;
-    // }
     removeChild(parentDom, dom);
   }
   if (

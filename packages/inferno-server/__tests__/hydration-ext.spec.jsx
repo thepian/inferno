@@ -1,10 +1,6 @@
 import { render } from "inferno";
 import Component from "inferno-component";
-import {
-  createContainerWithHTML,
-  innerHTML,
-  validateNodeTree
-} from "inferno-utils";
+import { createContainerWithHTML, innerHTML } from "inferno-utils";
 
 class Comp extends Component {
   render() {

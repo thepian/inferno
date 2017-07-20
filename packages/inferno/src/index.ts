@@ -30,6 +30,7 @@ import {
 } from "./DOM/rendering";
 import { EMPTY_OBJ, handleComponentInput } from "./DOM/utils";
 import { mount } from "./DOM/mounting";
+import { unmount } from "./DOM/unmounting";
 
 if (process.env.NODE_ENV !== "production") {
   /* tslint:disable-next-line:no-empty */
@@ -98,6 +99,7 @@ export {
   internal_patch,
   linkEvent,
   mount,
+  unmount,
   options,
   render,
   version

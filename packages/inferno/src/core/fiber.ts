@@ -17,9 +17,7 @@ export interface IFiber {
   childrenKeys: Map<string | number, number>;
   dom: null | Element;
   lifeCycle: LifecycleClass;
-  // Non keyed index or keyed key
   i: string | number;
-  // c is possible component instance
   c: any;
   childFlags: number;
 }

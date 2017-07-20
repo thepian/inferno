@@ -1,11 +1,7 @@
 import { createVNode, render } from "inferno";
 import Component from "inferno-component";
 import { renderToString } from "inferno-server";
-import {
-  createContainerWithHTML,
-  innerHTML,
-  validateNodeTree
-} from "inferno-utils";
+import { createContainerWithHTML, innerHTML } from "inferno-utils";
 
 function Comp1() {
   return <span>Worked!</span>;
@@ -221,7 +217,6 @@ describe("SSR Hydration - (JSX)", () => {
 
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect1));
       render(node, container);
-      expect(validateNodeTree(node)).toBe(true);
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect2));
       render(node, container);
       expect(innerHTML(container.innerHTML)).toBe(innerHTML(expect2));
@@ -414,17 +409,17 @@ describe("SSR Hydration - (JSX)", () => {
     }
   ].forEach(({ node, expect1, node2, node3, expect2, expect3 }, i) => {
     it(`Update various structures #${i + 1}`, () => {
+      if (i === 7) {
+        debugger;
+      }
       const html = renderToString(node);
       const container = createContainerWithHTML(html);
 
       expect(container.innerHTML).toBe(expect1);
       render(node, container);
-      expect(validateNodeTree(node)).toBe(true);
       render(node2, container);
-      expect(validateNodeTree(node2)).toBe(true);
       expect(container.innerHTML).toBe(expect2);
       render(node3, container);
-      expect(validateNodeTree(node3)).toBe(true);
       expect(container.innerHTML).toBe(expect3);
     });
   });
@@ -1151,7 +1146,7 @@ describe("SSR Hydration - (JSX)", () => {
       }
     ].forEach(
       ({ SSR, CSR, CSR2, SSR_expected, CSR_expected, CSR2_expected }, i) => {
-        it(`Validate various structures #${i + 1}`, () => {
+        it(`#2# Validate various structures #${i + 1}`, () => {
           const ssrString = renderToString(SSR);
           const SsrContainer = createContainerWithHTML(ssrString);
 

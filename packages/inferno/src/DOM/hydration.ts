@@ -70,6 +70,7 @@ function hydrateComponent(
   const type = vNode.type;
   const ref = vNode.ref;
   const props = vNode.props || EMPTY_OBJ;
+  let childFiber;
 
   if (isClass) {
     const _isSVG = dom.namespaceURI === svgNS;
@@ -84,7 +85,7 @@ function hydrateComponent(
     );
     fiber.c = instance;
     instance._vNode = vNode;
-    const childFiber = fiber.children as IFiber;
+    childFiber = fiber.children as IFiber;
     if (!isInvalid(childFiber.input)) {
       // TODO: Can input be string?
       childFiber.dom = hydrate(
@@ -107,7 +108,7 @@ function hydrateComponent(
     const input = handleComponentInput(renderOutput);
 
     if (!isInvalid(input)) {
-      const childFiber = new Fiber(input, "0");
+      childFiber = new Fiber(input, "0");
       fiber.children = childFiber;
       childFiber.dom = hydrate(
         childFiber,
@@ -119,10 +120,11 @@ function hydrateComponent(
       );
     }
 
-    fiber.dom = dom;
     mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
-
   }
+
+  fiber.dom = childFiber ? childFiber.dom : null;
+
   return dom;
 }
 
@@ -147,8 +149,8 @@ function hydrateElement(
         "Inferno hydration: Server-side markup doesn't match client-side markup or Initial render target is not empty"
       );
     }
-    const newDom = mountElement(fiber, vNode, null, lifecycle, context, isSVG);
 
+    const newDom = mountElement(fiber, vNode, null, lifecycle, context, isSVG);
     fiber.dom = newDom;
     replaceChild(dom.parentNode, newDom, dom);
 
@@ -181,10 +183,8 @@ function hydrateElement(
     } else {
       dom.className = className;
     }
-  } else {
-    if (dom.className !== "") {
-      dom.removeAttribute("class");
-    }
+  } else if (dom.className !== "") {
+    dom.removeAttribute("class");
   }
   if (ref) {
     mountRef(dom, ref, lifecycle);
@@ -192,7 +192,6 @@ function hydrateElement(
   return dom;
 }
 
-// TODO: Remove recursion
 export function hydrateArrayChildren(
   dom,
   parentFiber,
@@ -304,9 +303,13 @@ function hydrateChildren(
     );
   } else {
     // It's VNode
+    const childFiber = new Fiber(children as IVNode, "0");
+
+    parentFiber.children = childFiber;
+
     if (!isNull(dom)) {
       hydrate(
-        parentFiber,
+        childFiber,
         children as IVNode,
         dom as Element,
         lifecycle,
@@ -316,7 +319,7 @@ function hydrateChildren(
       dom = (dom as Element).nextSibling;
     } else {
       mount(
-        parentFiber,
+        childFiber,
         children as IVNode,
         parentDom,
         lifecycle,
@@ -335,6 +338,7 @@ function hydrateChildren(
 }
 
 function hydrateText(fiber: IFiber, text: string, dom: Element): Element {
+  fiber.input = text;
   if (dom.nodeType !== 3) {
     const newDom = mountText(fiber, text, null);
 
@@ -351,7 +355,7 @@ function hydrateText(fiber: IFiber, text: string, dom: Element): Element {
 }
 
 function hydrate(
-  parentFiber: IFiber,
+  fiber: IFiber,
   input: IVNode | string,
   dom: Element,
   lifecycle: LifecycleClass,
@@ -359,14 +363,14 @@ function hydrate(
   isSVG: boolean
 ) {
   if (isStringOrNumber(input)) {
-    return hydrateText(parentFiber, input, dom);
+    return hydrateText(fiber, input, dom);
   } else {
     // It's VNode
     const flags = input.flags;
 
     if (flags & VNodeFlags.Component) {
       return hydrateComponent(
-        parentFiber,
+        fiber,
         input,
         dom,
         lifecycle,
@@ -375,7 +379,7 @@ function hydrate(
         (flags & VNodeFlags.ComponentClass) > 0
       );
     } else if (flags & VNodeFlags.Element) {
-      return hydrateElement(parentFiber, input, dom, lifecycle, context, isSVG);
+      return hydrateElement(fiber, input, dom, lifecycle, context, isSVG);
     } else {
       if (process.env.NODE_ENV !== "production") {
         throwError(

@@ -1931,7 +1931,7 @@ describe("Components (JSX)", () => {
 
     render(<Bar />, container);
     expect(container.innerHTML).toBe("");
-    
+
     updater();
     expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
 

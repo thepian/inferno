@@ -6,8 +6,7 @@ import {
   innerHTML,
   sortAttributes,
   style,
-  triggerEvent,
-  validateNodeTree
+  triggerEvent
 } from "inferno-utils";
 import sinon from "sinon";
 
@@ -89,33 +88,6 @@ describe("Utils", () => {
       const container = createContainerWithHTML("<h1>hello!</h1>");
       expect(container.innerHTML).toBe("<h1>hello!</h1>");
       expect(container.tagName).toBe("DIV");
-    });
-  });
-  describe("validateNodeTree", () => {
-    it("should return true if called with falsy arguments", () => {
-      expect(validateNodeTree(false)).toBe(true);
-      expect(validateNodeTree(null)).toBe(true);
-      expect(validateNodeTree(undefined)).toBe(true);
-    });
-
-    it("should return true if called with a string", () => {
-      expect(validateNodeTree("<div><h1>test</h1></div>")).toBe(true);
-    });
-
-    it("should return true if called with a number", () => {
-      expect(validateNodeTree(4)).toBe(true);
-    });
-
-    it("should return true on a valid node tree", () => {
-      const node = (
-        <div>
-          <span>Hello world</span>
-        </div>
-      );
-      const html = renderToString(node);
-      const container = createContainerWithHTML(html);
-      render(node, container);
-      expect(validateNodeTree(node)).toBe(true);
     });
   });
 

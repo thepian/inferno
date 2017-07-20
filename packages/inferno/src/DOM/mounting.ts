@@ -188,7 +188,6 @@ export function mountElement(
   return dom;
 }
 
-// TODO: Remove recursion
 export function mountArrayChildren(
   fiber,
   children,
@@ -286,7 +285,6 @@ export function mountComponent(
       lifecycle,
       parentDom
     );
-    // const input = instance._lastInput;
     fiber.c = instance;
     const childFiber = fiber.children as IFiber;
     if (!isInvalid(childFiber.input)) {

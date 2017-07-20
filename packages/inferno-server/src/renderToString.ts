@@ -19,38 +19,39 @@ import VNodeFlags from "inferno-vnode-flags";
 import { renderStylesToString } from "./prop-renderers";
 import { escapeText, voidElements } from "./utils";
 
-
-function renderChildrenRecursion(children: any[], vNode, context, first: boolean) {
-  let string = '';
+function renderChildrenRecursion(
+  children: any[],
+  vNode,
+  context,
+  first: boolean
+) {
+  let string = "";
 
   for (let i = 0, len = children.length; i < len; i++) {
     const child = children[i];
 
     if (isString(child)) {
-      string += ((first && i === 0 ? '' : '<!---->') + escapeText(child));
+      string += (first && i === 0 ? "" : "<!---->") + escapeText(child);
     } else if (isNumber(child)) {
       string += child;
     } else if (!isInvalid(child)) {
       if (isArray(child)) {
-        string += renderChildrenRecursion(child, vNode, context, first && i === 0);
+        string += renderChildrenRecursion(
+          child,
+          vNode,
+          context,
+          first && i === 0
+        );
+      } else {
+        string += renderVNodeToString(child, vNode, context);
       }
-
-      string += renderVNodeToString(
-        child,
-        vNode,
-        context
-      )
     }
   }
 
   return string;
 }
 
-function renderVNodeToString(
-  vNode,
-  parent,
-  context
-): string | undefined {
+function renderVNodeToString(vNode, parent, context): string | undefined {
   const flags = vNode.flags;
   const type = vNode.type;
   const props = vNode.props || EMPTY_OBJ;
@@ -150,7 +151,12 @@ function renderVNodeToString(
         } else if (isNumber(children)) {
           renderedString += children + "";
         } else if (isArray(children)) {
-          renderedString += renderChildrenRecursion(children, vNode, context, true);
+          renderedString += renderChildrenRecursion(
+            children,
+            vNode,
+            context,
+            true
+          );
         } else {
           renderedString += renderVNodeToString(children, vNode, context);
         }

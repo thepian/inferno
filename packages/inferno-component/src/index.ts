@@ -8,6 +8,7 @@ import {
   IFiber,
   Fiber,
   mount,
+  unmount,
   internal_DOMNodeMap,
   internal_patch,
   options,
@@ -25,7 +26,6 @@ import {
   throwError,
   isInvalid
 } from "inferno-shared";
-import {unmount} from "../../inferno/src/DOM/unmounting";
 
 const C = options.component;
 
@@ -34,7 +34,7 @@ C.create = createInstance;
 C.patch = patchComponent;
 C.flush = flushQueue;
 
-const G = (typeof window === 'undefined' ? global : window) as any;
+const G = (typeof window === "undefined" ? global : window) as any;
 const handleInput = C.handleInput as Function;
 let noOp = ERROR_MSG;
 
@@ -310,7 +310,6 @@ function handleUpdate(
   const prevState = hasComponentDidUpdateIsFunction
     ? combineFrom(nextState, null)
     : component.state;
-  // const lastInput = component._lastInput as IVNode;
   const prevProps = component.props;
   const renderOutput = updateComponent(
     component,
@@ -397,11 +396,8 @@ function handleUpdate(
   // } else if (lastInput.flags & VNodeFlags.Component) {
   // 	lastInput.parentVNode = vNode;
   // }
-
-  // component._lastInput = nextInput as IVNode;
-  // const dom = vNode.dom = (nextInput as IVNode).dom as Element;
   component._parentNode = parentDom;
-  const dom = component._fiber.dom = componentRootFiber.dom;
+  const dom = (component._fiber.dom = componentRootFiber.dom);
 
   if (options.findDOMNodeEnabled) {
     internal_DOMNodeMap.set(component, dom);
@@ -498,7 +494,6 @@ export default class Component<P, S> implements ComponentLifecycle<P, S> {
   public _blockSetState = true;
   public _pendingSetState = false;
   public _pendingState: S | null = null;
-  // public _lastInput: any = null;
   public _fiber: IFiber;
   public _unmounted: boolean = false;
   public _lifecycle: LifecycleClass;
