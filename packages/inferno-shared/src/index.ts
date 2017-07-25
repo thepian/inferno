@@ -6,7 +6,8 @@ export const NO_OP = "$NO_OP";
 export const ERROR_MSG =
   "a runtime error occured! Use Inferno in development environment to find the error.";
 
-export const isBrowser = isObject(window) && isObject(window.document);
+export const isBrowser =
+  typeof window === "object" && isObject(window.document);
 
 export function toArray(children): any[] {
   return isArray(children) ? children : children ? [children] : children;

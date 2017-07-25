@@ -2,7 +2,7 @@ import { IVNode } from "./vnode";
 
 export const enum FiberFlags {
   HasKeyedChildren = 1, // data is optimized for keyed algorithm
-  HasNonKeydChildren = 1 << 2
+  HasNonKeydChildren = 1 << 1
 }
 
 export interface IFiber {

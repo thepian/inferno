@@ -6,6 +6,7 @@ import hoistStatics from "hoist-non-inferno-statics";
 import { createVNode } from "inferno";
 import Component from "inferno-component";
 import { observer } from "./observer";
+import VNodeFlags from "inferno-vnode-flags";
 
 /**
  * Store Injection
@@ -50,7 +51,7 @@ function createStoreInjector(grabStoresFn, component, injectNames?): any {
       }
 
       return createVNode(
-        16 /* Unknown Component */,
+        VNodeFlags.ComponentUnknown,
         component,
         null,
         null,
