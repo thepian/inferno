@@ -11,7 +11,6 @@ import {
 import VNodeFlags from "inferno-vnode-flags";
 import { options } from "../core/options";
 import { InfernoChildren, IVNode } from "../core/vnode";
-// import { hydrateRoot } from './hydration';
 import { mount } from "./mounting";
 import { patch } from "./patching";
 import { unmount } from "./unmounting";
@@ -43,37 +42,6 @@ export function findDOMNode(ref) {
 
   return componentToDOMNodeMap.get(ref) || dom;
 }
-
-// function getRoot(dom): Root | null {
-// 	for (let i = 0, len = roots.length; i < len; i++) {
-// 		const root = roots[ i ];
-//
-// 		if (root.dom === dom) {
-// 			return root;
-// 		}
-// 	}
-// 	return null;
-// }
-//
-// function setRoot(dom: Element | SVGAElement, input: InfernoInput, lifecycle: LifecycleClass): Root {
-// 	const root: Root = {
-// 		dom,
-// 		input,
-// 		lifecycle
-// 	};
-//
-// 	roots.push(root);
-// 	return root;
-// }
-
-// function removeRoot(root: Root): void {
-// 	for (let i = 0, len = roots.length; i < len; i++) {
-// 		if (roots[ i ] === root) {
-// 			roots.splice(i, 1);
-// 			return;
-// 		}
-// 	}
-// }
 
 if (process.env.NODE_ENV !== "production") {
   if (isBrowser && document.body === null) {
@@ -114,14 +82,15 @@ export function render(
     return;
   }
   G.INFRender = true;
-  let rootFiber = roots.get(parentDom);
+  const root = roots.get(parentDom);
+  let rootFiber;
   let lifecycle;
-  if (rootFiber === undefined) {
+  if (root === undefined) {
     if (isInvalid(input)) {
       return;
     }
     rootFiber = new Fiber(input, "0") as IFiber; // Stupid typescript... why casting needed???
-    rootFiber.lifeCycle = lifecycle = new Lifecycle();
+    lifecycle = new Lifecycle();
     if (!hydrateRoot(rootFiber, input, parentDom as any, lifecycle)) {
       mount(
         rootFiber,
@@ -135,10 +104,14 @@ export function render(
     }
 
     // rootFiber = setRoot(parentDom as any, input, lifecycle);
-    roots.set(parentDom, rootFiber);
+    roots.set(parentDom, {
+      fiber: rootFiber,
+      lifeCycle: lifecycle
+    });
     lifecycle.trigger();
   } else {
-    lifecycle = rootFiber.lifeCycle;
+    rootFiber = root.fiber;
+    lifecycle = root.lifeCycle;
 
     lifecycle.listeners = [];
     if (isNullOrUndef(input) && !isInvalid(rootFiber.input)) {

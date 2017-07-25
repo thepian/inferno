@@ -217,7 +217,6 @@ function findOneOf(
 }
 
 // Scry Utilities
-
 // export function scryRenderedDOMElementsWithClass(renderedTree: any, classNames: string | string[]): Element[] {
 // 	return findAllInRenderedTree(renderedTree, (instance) => {
 // 		if (isDOMVNode(instance)) {
@@ -238,7 +237,9 @@ function findOneOf(
 // 	}).map((instance) => instance.dom);
 // }
 
-export function scryRenderedDOMElementsWithClass() {}
+export function scryRenderedDOMElementsWithClass() {
+  // TODO: Fix this
+}
 
 export function scryRenderedDOMElementsWithTag(
   renderedTree: any,

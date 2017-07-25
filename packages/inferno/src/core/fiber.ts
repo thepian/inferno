@@ -1,14 +1,8 @@
-import { LifecycleClass } from "inferno-shared";
 import { IVNode } from "./vnode";
 
-// FiberFLags are used to describe shape of its vNode
-// Flags are used for internal optimizations
-// TODO: Implement this to reduce diffing overhead
 export const enum FiberFlags {
-  HasNoChildren = 1 << 1,
-  HasKeyedChildren = 1 << 2, // data is optimized for keyed algorithm
-  HasNonKeydChildren = 1 << 3,
-  HasSingleChildren = 1 << 4 // Single Element children
+  HasKeyedChildren = 1, // data is optimized for keyed algorithm
+  HasNonKeydChildren = 1 << 2
 }
 
 export interface IFiber {
@@ -16,10 +10,10 @@ export interface IFiber {
   children: null | IFiber | IFiber[];
   childrenKeys: Map<string | number, number>;
   dom: null | Element;
-  lifeCycle: LifecycleClass;
   i: string | number;
   c: any;
   childFlags: number;
+  parent: null | IFiber;
 }
 
 /**
@@ -34,8 +28,8 @@ export function Fiber(input, i) {
   this.dom = null;
   this.children = null; // This value is null for Fibers that hold text nodes
   this.childrenKeys = null;
-  this.lifeCycle = null;
   this.i = i;
   this.c = null;
   this.childFlags = 0;
+  this.parent = null; // Used only for nested components
 }

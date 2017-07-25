@@ -2,7 +2,6 @@
  * @module Inferno-Component
  */ /** TypeDoc Comment */
 
-// Make sure u use EMPTY_OBJ from 'inferno', otherwise it'll be a different reference
 import {
   EMPTY_OBJ,
   IFiber,
@@ -26,16 +25,14 @@ import {
   throwError,
   isInvalid
 } from "inferno-shared";
+import VNodeFlags from "inferno-vnode-flags";
 
 const C = options.component;
-
-/* Add ES6 component implementations for Inferno-core to use */
 C.create = createInstance;
 C.patch = patchComponent;
 C.flush = flushQueue;
 
 const G = (typeof window === "undefined" ? global : window) as any;
-const handleInput = C.handleInput as Function;
 let noOp = ERROR_MSG;
 
 if (process.env.NODE_ENV !== "production") {
@@ -96,7 +93,7 @@ function queueStateChanges<P, S>(
 }
 
 function createInstance(
-  parentFiber: IFiber,
+  componentsFiber: IFiber,
   vNode: IVNode,
   Class,
   props: Props,
@@ -107,7 +104,7 @@ function createInstance(
 ) {
   const instance = new Class(props, context) as Component<any, any>;
   // vNode.children = instance as any;
-  parentFiber.c = instance;
+  componentsFiber.c = instance;
   instance._blockSetState = false;
   instance.context = context;
   instance._parentNode = parentDom;
@@ -147,17 +144,15 @@ function createInstance(
   }
 
   instance._pendingSetState = false;
-  instance._fiber = parentFiber;
+  instance._fiber = componentsFiber;
 
-  const rootInput = handleInput(renderOutput);
+  componentsFiber.children = new Fiber(renderOutput, "0");
 
-  parentFiber.children = new Fiber(rootInput, "0");
-
-  // if (!isInvalid(rootInput)) {
-  //   if ((rootInput.flags & rootInput.ComponentClass) > 0) {
-  //     rootInput.c._parentNode = parentDom; // Store reference to parentNode, for possible setState
-  //   }
-  // }
+  if (renderOutput !== null && typeof renderOutput === "object") {
+    if ((renderOutput.flags & VNodeFlags.Component) > 0) {
+      (componentsFiber.children as IFiber).parent = componentsFiber;
+    }
+  }
 
   return instance;
 }
@@ -277,28 +272,13 @@ function patchComponent(
       lifecycle,
       parentDom
     );
-    // nextVNode.children = instance;
   }
   instance._updating = false;
 
   return false;
 }
 
-// const resolvedPromise = Promise.resolve();
 let componentFlushQueue: Array<Component<any, any>> = [];
-
-// // when a components root IVNode is also a component, we can run into issues
-// // this will recursively look for input.parentNode if the IVNode is a component
-// function updateParentComponentVNodes(vNode: IVNode, dom: Element) {
-// 	if (vNode.flags & VNodeFlags.Component) {
-// 		const parentVNode = vNode.parentVNode;
-//
-// 		if (parentVNode) {
-// 			parentVNode.dom = dom;
-// 			updateParentComponentVNodes(parentVNode, dom);
-// 		}
-// 	}
-// }
 
 function handleUpdate(
   component: Component<any, any>,
@@ -331,11 +311,11 @@ function handleUpdate(
     force,
     fromSetState
   );
-  // const vNode = component._vNode;
-  const componentRootFiber = component._fiber.children as IFiber;
+  const fiber = component._fiber;
+  const componentRootFiber = fiber.children as IFiber;
 
   if (renderOutput !== NO_OP) {
-    const nextInput = handleInput(renderOutput);
+    const nextInput = renderOutput;
     let childContext;
 
     if (isFunction(component.getChildContext)) {
@@ -347,14 +327,6 @@ function handleUpdate(
     } else {
       childContext = combineFrom(context, childContext as any);
     }
-
-    // if (nextInput.flags & VNodeFlags.Component) {
-    // 	nextInput.parentVNode = vNode;
-    // } else if (lastInput.flags & VNodeFlags.Component) {
-    // 	lastInput.parentVNode = vNode;
-    // }
-
-    // lastVNode: nextVNode: parentDom, lifecycle, context, isSVG, isRecycling
     const hasContent = !isInvalid(componentRootFiber.input);
 
     if (!isInvalid(nextInput)) {
@@ -386,6 +358,14 @@ function handleUpdate(
 
     if (fromSetState) {
       lifeCycle.trigger();
+      let parent = fiber.parent;
+
+      if (fiber.parent !== null) {
+        while (parent !== null) {
+          parent.dom = componentRootFiber.dom;
+          parent = parent.parent;
+        }
+      }
     }
 
     if (hasComponentDidUpdateIsFunction) {
@@ -397,16 +377,8 @@ function handleUpdate(
     if (options.findDOMNodeEnabled) {
       // internal_DOMNodeMap.set(component, nextInput.dom);
     }
-  } else {
-    // nextInput = lastInput;
   }
 
-  // componentRootFiber.input = nextInput;
-  // if (nextInput.flags & VNodeFlags.Component) {
-  // 	nextInput.parentVNode = vNode;
-  // } else if (lastInput.flags & VNodeFlags.Component) {
-  // 	lastInput.parentVNode = vNode;
-  // }
   component._parentNode = parentDom;
   const dom = (component._fiber.dom = componentRootFiber.dom);
 

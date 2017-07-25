@@ -100,6 +100,7 @@ export function unmountComponent(
   }
 
   fiber.children = null;
+  fiber.parent = null;
   if (parentDom && !isNull(dom)) {
     removeChild(parentDom, dom);
   }

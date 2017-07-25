@@ -19,7 +19,6 @@ import {
   appendChild,
   documentCreateElement,
   EMPTY_OBJ,
-  handleComponentInput,
   setTextContent
 } from "./utils";
 import {
@@ -202,7 +201,7 @@ export function mountElement(
 }
 
 export function mountArrayChildren(
-  fiber,
+  fiber: IFiber,
   children,
   dom: Element,
   lifecycle: LifecycleClass,
@@ -235,7 +234,7 @@ export function mountArrayChildren(
           isKeyed = isObject(child)
             ? !isNullOrUndef((child as IVNode).key)
             : false;
-          fiber.flags |= isKeyed
+          fiber.childFlags = isKeyed
             ? FiberFlags.HasKeyedChildren
             : FiberFlags.HasNonKeydChildren;
           if (isKeyed) {
@@ -247,7 +246,7 @@ export function mountArrayChildren(
           isKeyed ? child.key : prefix + (i + 1)
         );
 
-        fiber.children.push(childFiber);
+        (fiber.children as IFiber[]).push(childFiber);
         if (isKeyed) {
           fiber.childrenKeys.set(child.key, counter++);
         }
@@ -322,8 +321,7 @@ export function mountComponent(
       componentToDOMNodeMap.set(instance, dom);
     }
   } else {
-    const renderOutput = type(props, context);
-    const input = handleComponentInput(renderOutput);
+    const input = type(props, context);
 
     if (!isInvalid(input)) {
       const childFiber = new Fiber(input, "0");
@@ -337,10 +335,13 @@ export function mountComponent(
         isSVG,
         false
       );
+      if (typeof input === "object") {
+        if ((input.flags & VNodeFlags.Component) > 0) {
+          (fiber.children as IFiber).parent = fiber;
+        }
+      }
     }
-    // fiber.c = 'stateless';
 
-    // fiber.input = input;
     mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
     if (insertIntoDom && !isNull(dom)) {
       fiber.dom = dom;

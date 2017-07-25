@@ -25,7 +25,7 @@ export function getFlagsForElementVnode(type: string): number {
 // tslint:disable-next-line
 let validateChildren: Function = function() {};
 if (process.env.NODE_ENV !== "production") {
-  validateChildren = function validateChildren(vNode: IVNode, children) {
+  validateChildren = function(vNode: IVNode, children) {
     if ((vNode.flags & VNodeFlags.InputElement) > 0) {
       throw new Error(
         "Failed to set children, input elements can't have children."

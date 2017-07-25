@@ -27,7 +27,7 @@ import {
 } from "./mounting";
 import { patchProp } from "./patching";
 import { componentToDOMNodeMap } from "./rendering";
-import { EMPTY_OBJ, handleComponentInput, replaceChild } from "./utils";
+import { EMPTY_OBJ, replaceChild } from "./utils";
 import {
   isControlledFormElement,
   processElement
@@ -106,8 +106,7 @@ function hydrateComponent(
       componentToDOMNodeMap.set(instance, dom);
     }
   } else {
-    const renderOutput = (type as Function)(props, context);
-    const input = handleComponentInput(renderOutput);
+    const input = (type as Function)(props, context);
 
     if (!isInvalid(input)) {
       childFiber = new Fiber(input, "0");

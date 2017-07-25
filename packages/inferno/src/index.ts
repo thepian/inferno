@@ -28,7 +28,7 @@ import {
   findDOMNode,
   render
 } from "./DOM/rendering";
-import { EMPTY_OBJ, handleComponentInput } from "./DOM/utils";
+import { EMPTY_OBJ } from "./DOM/utils";
 import { mount } from "./DOM/mounting";
 import { unmount } from "./DOM/unmounting";
 
@@ -56,8 +56,6 @@ export declare const VNodeFlags: _VNodeFlags;
 export declare const LifecycleClass: _LifecycleClass;
 
 const version = "4.0.0";
-
-options.component.handleInput = handleComponentInput;
 
 // we duplicate it so it plays nicely with different module loading systems
 export default {

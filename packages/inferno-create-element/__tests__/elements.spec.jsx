@@ -1164,11 +1164,9 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.textContent).toBe(
-        innerHTML("<div>Hello worldHello worldHello world</div>").textContent
-      );
+      expect(container.textContent).toBe("Hello worldHello worldHello world");
       render(b, container);
-      expect(container.innerHTML).toBe(innerHTML("This works!"));
+      expect(container.innerHTML).toBe(innerHTML("<div>This works!</div>"));
     });
 
     it("basic nested example ", () => {
@@ -1179,9 +1177,7 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.textContent).toBe(
-        innerHTML("<div>Hello worldThis works!</div>").textContent
-      );
+      expect(container.textContent).toBe("Hello worldThis works!");
       render(
         <div>
           {b}
@@ -1189,9 +1185,7 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.textContent).toBe(
-        innerHTML("<div>This works!Hello world</div>").textContent
-      );
+      expect(container.textContent).toBe("This works!Hello world");
     });
 
     it("basic nested component example #2 ", () => {
@@ -1201,9 +1195,7 @@ describe("Elements (JSX)", () => {
         </C>,
         container
       );
-      expect(container.textContent).toBe(
-        innerHTML("<div>Hello worldHello worldHello world</div>").textContent
-      );
+      expect(container.textContent).toBe("Hello worldHello worldHello world");
       render(
         <C>
           {b}
@@ -1212,9 +1204,7 @@ describe("Elements (JSX)", () => {
         container
       );
       expect(container.textContent).toBe(
-        innerHTML(
-          "<div>This works!Hello worldThis works!Hello worldThis works!Hello world</div>"
-        ).textContent
+        "This works!Hello worldThis works!Hello worldThis works!Hello world"
       );
     });
   });

@@ -1,10 +1,4 @@
-import {
-  isArray,
-  isInvalid,
-  isNullOrUndef,
-  LifecycleClass,
-  throwError
-} from "inferno-shared";
+import { isInvalid, isNullOrUndef, LifecycleClass } from "inferno-shared";
 import { options } from "../core/options";
 import { IVNode } from "../core/vnode";
 import { svgNS } from "./constants";
@@ -34,35 +28,6 @@ export function replaceDOM(
   unmount(fiber, null, lifecycle, false, isRecycling);
   replaceChild(parentDom, newDOM, fiber.dom);
   fiber.dom = newDOM;
-}
-
-export function handleComponentInput(input) {
-  let out;
-
-  // if (isInvalid(input)) {
-  // 	// out = createVoidVNode();
-  // } else if (isStringOrNumber(input)) {
-  // 	// out = createTextVNode(input, null);
-  // } else
-  if (isArray(input)) {
-    if (process.env.NODE_ENV !== "production") {
-      throwError(
-        "a valid Inferno VNode (or null) must be returned from a component render. You may have returned an array or an invalid object."
-      );
-    }
-    throwError();
-  } else {
-    // It's input
-    out = input;
-    // if ((out.flags & VNodeFlags.Component) > 0) {
-    // 	// if we have an input that is also a component, we run into a tricky situation
-    // 	// where the root input needs to always have the correct DOM entry
-    // 	// so we break monomorphism on our input and supply it our input as parentVNode
-    // 	// we can optimise this in the future, but this gets us out of a lot of issues
-    // 	out.parentVNode = parentVNode;
-    // }
-  }
-  return out;
 }
 
 export function setTextContent(dom, text: string | number) {

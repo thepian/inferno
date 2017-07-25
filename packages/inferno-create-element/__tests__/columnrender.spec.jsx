@@ -205,11 +205,17 @@ describe("Columns like tests - (JSX)", () => {
 
         render() {
           const items = this.props.items;
+          const stuff = [<span key="column">column</span>];
+
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+
+            stuff.push(<ItemKeyed key={item.id} text={item.text} />);
+          }
 
           return (
             <div>
-              <span key="column">column</span>
-              {items.map(item => <ItemKeyed key={item.id} text={item.text} />)}
+              {stuff}
             </div>
           );
         }

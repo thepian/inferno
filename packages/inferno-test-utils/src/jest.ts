@@ -22,7 +22,6 @@ function createSnapshotObject(object: object) {
 
 export function vNodeToSnapshot(node: IVNode) {
   let object;
-  debugger;
   const children: any[] = [];
   if (isDOMVNode(node)) {
     const props = { className: node.className || undefined, ...node.props };
@@ -41,7 +40,9 @@ export function vNodeToSnapshot(node: IVNode) {
     });
   }
   const _children =
-    node.flags & VNodeFlags.Component ? node.props ? node.props.children : null : node.children;
+    node.flags & VNodeFlags.Component
+      ? node.props ? node.props.children : null
+      : node.children;
 
   if (isArray(_children)) {
     _children.forEach(child => {

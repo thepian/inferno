@@ -16,7 +16,6 @@ describe("Select / select multiple (JSX)", () => {
   });
 
   it('should render "select" boolean on select options with numbers', () => {
-    debugger;
     render(
       <select multiple={true} value={null}>
         <option value={1}>1</option>
@@ -371,7 +370,6 @@ describe("Select / select multiple (JSX)", () => {
   });
 
   it("should render multiple defaultValue", () => {
-    debugger;
     render(
       <select multiple={true} defaultValue={["a", "b", "c"]}>
         <option value={"a"}>a</option>
