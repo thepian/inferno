@@ -22,7 +22,7 @@ module.exports = {
     usingJSDOM: true,
     usingJest: true
   },
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+  moduleFileExtensions: ["ts", "js", "jsx", "json"],
   moduleNameMapper: {
     "^inferno$": "<rootDir>/packages/inferno/src",
     "^inferno-compat": "<rootDir>/packages/inferno-compat/src",
@@ -60,7 +60,7 @@ module.exports = {
   ],
   transform: {
     "^.+\\.jsx?$": "babel-jest",
-    "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    "^.+\\.ts?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
   },
   transformIgnorePatterns: ["<rootDir>/node_modules/(?!lodash-es)"],
 

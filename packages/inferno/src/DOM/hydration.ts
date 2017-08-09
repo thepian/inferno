@@ -109,7 +109,7 @@ function hydrateComponent(
     const input = (type as Function)(props, context);
 
     if (!isInvalid(input)) {
-      childFiber = new Fiber(input, "0");
+      childFiber = new Fiber(input, "0", null);
       fiber.children = childFiber;
       childFiber.dom = hydrate(
         childFiber,
@@ -227,7 +227,7 @@ export function hydrateArrayChildren(
           lifecycle,
           context,
           isSVG,
-          isKeyed ? "" : prefix + (i + 1) + ".",
+          isKeyed ? "" : prefix + i + ".",
           isKeyed,
           counter
         );
@@ -238,19 +238,10 @@ export function hydrateArrayChildren(
             ? !isNullOrUndef((child as IVNode).key)
             : false;
           // parentFiber.flags = (isKeyed ? FiberFlags.HasKeyedChildren : FiberFlags.HasNonKeydChildren);
-          if (isKeyed) {
-            parentFiber.childrenKeys = new Map();
-          }
         }
-        const childFiber = new Fiber(
-          child,
-          isKeyed ? child.key : prefix + (i + 1)
-        );
+        const childFiber = new Fiber(child, prefix + i, child.key);
 
         parentFiber.children.push(childFiber);
-        if (isKeyed) {
-          parentFiber.childrenKeys.set(child.key, counter++);
-        }
 
         if (isNull(dom)) {
           mount(childFiber, child, parentDOM, lifecycle, context, isSVG, true);
@@ -312,7 +303,7 @@ function hydrateChildren(
     );
   } else {
     // It's VNode
-    const childFiber = new Fiber(children as IVNode, "0");
+    const childFiber = new Fiber(children as IVNode, "0", null);
 
     parentFiber.children = childFiber;
 

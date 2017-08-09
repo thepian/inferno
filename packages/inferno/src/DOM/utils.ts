@@ -46,12 +46,18 @@ export function appendChild(parentDom, dom) {
   parentDom.appendChild(dom);
 }
 
-export function insertOrAppend(parentDom, newNode, nextNode) {
+export function insertOrAppend(
+  fiber: IFiber,
+  parentDom: Element,
+  newNode: Element,
+  nextNode?: Element | null
+) {
   if (isNullOrUndef(nextNode)) {
     appendChild(parentDom, newNode);
   } else {
     parentDom.insertBefore(newNode, nextNode);
   }
+  fiber.dom = newNode;
 }
 
 export function documentCreateElement(tag, isSVG: boolean): Element {

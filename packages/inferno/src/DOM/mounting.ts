@@ -150,7 +150,7 @@ export function mountElement(
         );
       } else {
         // VNode
-        const childFiber = new Fiber(children as IVNode, "0");
+        const childFiber = new Fiber(children as IVNode, "0", null);
 
         fiber.children = childFiber;
 
@@ -224,7 +224,7 @@ export function mountArrayChildren(
           lifecycle,
           context,
           isSVG,
-          isKeyed ? "" : prefix + (i + 1) + ".",
+          prefix + i + ".",
           isKeyed,
           counter
         );
@@ -237,19 +237,10 @@ export function mountArrayChildren(
           fiber.childFlags = isKeyed
             ? FiberFlags.HasKeyedChildren
             : FiberFlags.HasNonKeydChildren;
-          if (isKeyed) {
-            fiber.childrenKeys = new Map();
-          }
         }
-        const childFiber = new Fiber(
-          child,
-          isKeyed ? child.key : prefix + (i + 1)
-        );
+        const childFiber = new Fiber(child, prefix + i, child.key);
 
         (fiber.children as IFiber[]).push(childFiber);
-        if (isKeyed) {
-          fiber.childrenKeys.set(child.key, counter++);
-        }
         mount(childFiber, child, dom, lifecycle, context, isSVG, true);
       }
     }
@@ -324,7 +315,7 @@ export function mountComponent(
     const input = type(props, context);
 
     if (!isInvalid(input)) {
-      const childFiber = new Fiber(input, "0");
+      const childFiber = new Fiber(input, "0", null);
       fiber.children = childFiber;
       childFiber.dom = dom = mount(
         childFiber,

@@ -89,7 +89,7 @@ export function render(
     if (isInvalid(input)) {
       return;
     }
-    rootFiber = new Fiber(input, "0") as IFiber; // Stupid typescript... why casting needed???
+    rootFiber = new Fiber(input, "0", null) as IFiber; // Stupid typescript... why casting needed???
     lifecycle = new Lifecycle();
     if (!hydrateRoot(rootFiber, input, parentDom as any, lifecycle)) {
       mount(
