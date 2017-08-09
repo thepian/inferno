@@ -6,7 +6,6 @@ import {
   isNumber,
   isString,
   isStringOrNumber,
-  LifecycleClass,
   NO_OP,
   throwError,
   isUndefined
@@ -54,7 +53,7 @@ export function patch(
   fiber: IFiber,
   nextInput: IVNode | string | number,
   parentDom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context,
   isSVG: boolean,
   isRecycling: boolean
@@ -162,7 +161,7 @@ function unmountChildren(
   fiber: IFiber,
   children,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   isRecycling: boolean
 ) {
   // TODO: Check this, we could add Fiber flags to optimize this
@@ -181,7 +180,7 @@ export function patchElement(
   lastVNode: IVNode,
   nextVNode: IVNode,
   parentDom: Element | null,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   isRecycling: boolean
@@ -297,7 +296,7 @@ function patchChildren(
   lastChildFibers: IFiber[],
   nextChildren,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   isRecycling: boolean
@@ -463,7 +462,7 @@ export function patchComponent(
   lastVNode: IVNode,
   nextVNode: IVNode,
   parentDom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context,
   isSVG: boolean,
   isClass: boolean,
@@ -617,7 +616,7 @@ export function patchNonKeyedChildren(
   childFibers: IFiber[],
   nextChildren,
   dom,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   isRecycling: boolean,
@@ -725,7 +724,7 @@ export function patchKeyedChildren(
   a: IFiber[],
   b: IVNode[],
   parentDOM,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context,
   isSVG: boolean,
   isRecycling: boolean,

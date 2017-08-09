@@ -1,4 +1,5 @@
 import { render } from "inferno";
+import "inferno-hydrate";
 import { renderToString } from "inferno-server";
 
 import createElement from "inferno-create-element";

@@ -7,7 +7,6 @@ import {
   isObject,
   isStringOrNumber,
   isUndefined,
-  LifecycleClass,
   throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
@@ -32,7 +31,7 @@ export function mount(
   fiber: IFiber,
   input: IVNode | string | number,
   parentDom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   insertIntoDOM: boolean
@@ -104,7 +103,7 @@ export function mountElement(
   fiber: IFiber,
   vNode: IVNode,
   parentDom: Element | null,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: {},
   isSVG: boolean,
   insertIntoDom: boolean
@@ -204,7 +203,7 @@ export function mountArrayChildren(
   fiber: IFiber,
   children,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   prefix: string,
@@ -253,7 +252,7 @@ export function mountComponent(
   fiber: IFiber,
   vNode: IVNode,
   parentDom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   isClass: boolean,
@@ -347,7 +346,7 @@ export function mountClassComponentCallbacks(
   vNode: IVNode,
   ref,
   instance,
-  lifecycle: LifecycleClass
+  lifecycle
 ) {
   if (ref) {
     if (isFunction(ref)) {
@@ -390,12 +389,7 @@ export function mountClassComponentCallbacks(
   }
 }
 
-export function mountFunctionalComponentCallbacks(
-  props,
-  ref,
-  dom,
-  lifecycle: LifecycleClass
-) {
+export function mountFunctionalComponentCallbacks(props, ref, dom, lifecycle) {
   if (ref) {
     if (!isNullOrUndef(ref.onComponentWillMount)) {
       ref.onComponentWillMount(props);
@@ -406,7 +400,7 @@ export function mountFunctionalComponentCallbacks(
   }
 }
 
-export function mountRef(dom: Element, value, lifecycle: LifecycleClass) {
+export function mountRef(dom: Element, value, lifecycle) {
   if (isFunction(value)) {
     lifecycle.addListener(() => value(dom));
   } else {

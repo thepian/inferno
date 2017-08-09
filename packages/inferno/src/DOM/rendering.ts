@@ -2,8 +2,8 @@ import {
   isBrowser,
   isFunction,
   isInvalid,
+  isUndefined,
   isNullOrUndef,
-  Lifecycle,
   NO_OP,
   throwError,
   warning
@@ -16,7 +16,6 @@ import { patch } from "./patching";
 import { unmount } from "./unmounting";
 import { EMPTY_OBJ, G } from "./utils";
 import { Fiber, IFiber } from "../core/fiber";
-import { hydrateRoot } from "./hydration";
 
 // rather than use a Map, like we did before, we can use an array here
 // given there shouldn't be THAT many roots on the page, the difference
@@ -50,6 +49,24 @@ if (process.env.NODE_ENV !== "production") {
     );
   }
 }
+
+export function Lifecycle() {
+  this.listeners = [];
+}
+
+Lifecycle.prototype.addListener = function addListener(callback) {
+  this.listeners.push(callback);
+};
+Lifecycle.prototype.trigger = function trigger() {
+  const listeners = this.listeners;
+
+  let listener;
+  // We need to remove current listener from array when calling it, because more listeners might be added
+  // TODO: Performance - Check if this can be converted to for loop
+  while ((listener = listeners.shift())) {
+    listener();
+  }
+};
 
 const documentBody = isBrowser ? document.body : null;
 /**
@@ -91,7 +108,10 @@ export function render(
     }
     rootFiber = new Fiber(input, "0", null) as IFiber; // Stupid typescript... why casting needed???
     lifecycle = new Lifecycle();
-    if (!hydrateRoot(rootFiber, input, parentDom as any, lifecycle)) {
+    if (
+      isUndefined(options.hydrate) ||
+      !options.hydrate(rootFiber, input, parentDom as any, lifecycle)
+    ) {
       mount(
         rootFiber,
         input as IVNode,

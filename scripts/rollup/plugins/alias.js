@@ -22,6 +22,7 @@ module.exports = alias({
     ROOT,
     "packages/inferno-hyperscript/dist/index.es.js"
   ),
+  "inferno-hydrate": resolve(ROOT, "packages/inferno-hydrate/dist/index.es.js"),
   "inferno-mobx": resolve(ROOT, "packages/inferno-mobx/dist/index.es.js"),
   "inferno-redux": resolve(ROOT, "packages/inferno-redux/dist/index.es.js"),
   "inferno-router": resolve(ROOT, "packages/inferno-router/dist/index.es.js"),

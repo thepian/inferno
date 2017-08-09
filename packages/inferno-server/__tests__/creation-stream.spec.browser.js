@@ -1,3 +1,4 @@
+import "inferno-hydrate";
 import Component from "inferno-component";
 import { streamAsString } from "inferno-server";
 
@@ -9,7 +10,6 @@ class StatefulComponent extends Component {
     return createElement("span", null, `stateless ${this.props.value}!`);
   }
 }
-
 
 const FunctionalComponent = ({ value }) =>
   createElement("span", null, `stateless ${value}!`);
@@ -150,7 +150,8 @@ describe("SSR Creation Streams - (non-JSX)", () => {
       result: "<a>a<!---->b</a>"
     },
     {
-      description: "should render with array children containing an array of text children",
+      description:
+        "should render with array children containing an array of text children",
       template: value => createElement("a", null, [["a", "b"]]),
       result: "<a>a<!---->b</a>"
     },

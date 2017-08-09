@@ -31,6 +31,7 @@ module.exports = {
     "^inferno-create-element": "<rootDir>/packages/inferno-create-element/src",
     "^inferno-devtools": "<rootDir>/packages/inferno-devtools/src",
     "^inferno-hyperscript": "<rootDir>/packages/inferno-hyperscript/src",
+    "^inferno-hydrate": "<rootDir>/packages/inferno-hydrate/src",
     "^inferno-mobx": "<rootDir>/packages/inferno-mobx/src",
     "^inferno-redux": "<rootDir>/packages/inferno-redux/src",
     "^inferno-router": "<rootDir>/packages/inferno-router/src",

@@ -1,4 +1,4 @@
-import { isNull, isUndefined, LifecycleClass } from "inferno-shared";
+import { isNull, isUndefined } from "inferno-shared";
 import { IVNode } from "../core/vnode";
 
 export class Pools {
@@ -25,7 +25,7 @@ export const elementPools = new Map<string | null, Pools>();
 
 export function recycleElement(
   vNode: IVNode,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean
 ) {
@@ -40,7 +40,7 @@ export function recycleElement(
 
 export function recycleComponent(
   vNode: IVNode,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean
 ) {

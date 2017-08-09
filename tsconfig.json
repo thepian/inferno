@@ -10,6 +10,7 @@
 			"inferno-create-element": [ "packages/inferno-create-element/src" ],
 			"inferno-devtools": [ "packages/inferno-devtools/src" ],
 			"inferno-hyperscript": [ "packages/inferno-hyperscript/src" ],
+      "inferno-hydrate": [ "packages/inferno-hydrate/src" ],
 			"inferno-mobx": [ "packages/inferno-mobx/src" ],
 			"inferno-redux": [ "packages/inferno-redux/src" ],
 			"inferno-router": [ "packages/inferno-router/src" ],

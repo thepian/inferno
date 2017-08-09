@@ -1,9 +1,4 @@
-/* tslint:disable:object-literal-sort-keys */
-import {
-  LifecycleClass as _LifecycleClass,
-  NO_OP,
-  warning
-} from "inferno-shared";
+import { NO_OP, warning } from "inferno-shared";
 import _VNodeFlags from "inferno-vnode-flags";
 import { IFiber, Fiber } from "./core/fiber";
 import {
@@ -21,16 +16,28 @@ import {
 } from "./core/vnode";
 import { isUnitlessNumber as internal_isUnitlessNumber } from "./DOM/constants";
 import { linkEvent } from "./DOM/events/linkEvent";
-import { patch as internal_patch } from "./DOM/patching";
+import { patch as internal_patch, patchProp } from "./DOM/patching";
 import {
+  componentToDOMNodeMap,
   componentToDOMNodeMap as internal_DOMNodeMap,
   createRenderer,
   findDOMNode,
   render
 } from "./DOM/rendering";
 import { EMPTY_OBJ } from "./DOM/utils";
-import { mount } from "./DOM/mounting";
+import {
+  mount,
+  mountClassComponentCallbacks,
+  mountElement,
+  mountFunctionalComponentCallbacks,
+  mountRef,
+  mountText
+} from "./DOM/mounting";
 import { unmount } from "./DOM/unmounting";
+import {
+  isControlledFormElement,
+  processElement
+} from "./DOM/wrappers/processelements";
 
 if (process.env.NODE_ENV !== "production") {
   /* tslint:disable-next-line:no-empty */
@@ -53,7 +60,6 @@ if (process.env.NODE_ENV !== "production") {
 export declare const VNodeFlags: _VNodeFlags;
 // export declare const IFiber: _IFiber;
 // export declare const IVNode: _IVNode;
-export declare const LifecycleClass: _LifecycleClass;
 
 const version = "4.0.1";
 
@@ -74,7 +80,17 @@ export default {
   linkEvent,
   options,
   render,
-  version
+  version,
+  // Check which is really needed
+  mountElement,
+  mountClassComponentCallbacks,
+  mountFunctionalComponentCallbacks,
+  mountRef,
+  mountText,
+  patchProp,
+  componentToDOMNodeMap,
+  isControlledFormElement,
+  processElement
 };
 
 export {
@@ -100,5 +116,15 @@ export {
   unmount,
   options,
   render,
-  version
+  version,
+  // Check which is really needed
+  mountElement,
+  mountClassComponentCallbacks,
+  mountFunctionalComponentCallbacks,
+  mountRef,
+  mountText,
+  patchProp,
+  componentToDOMNodeMap,
+  isControlledFormElement,
+  processElement
 };

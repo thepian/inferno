@@ -20,7 +20,6 @@ import {
   isBrowser,
   isFunction,
   isNullOrUndef,
-  LifecycleClass,
   NO_OP,
   throwError,
   isInvalid
@@ -99,7 +98,7 @@ function createInstance(
   props: Props,
   context: Object,
   isSVG: boolean,
-  lifecycle: LifecycleClass,
+  lifecycle,
   parentDom: Element
 ) {
   const instance = new Class(props, context) as Component<any, any>;
@@ -248,7 +247,7 @@ function patchComponent(
   fiber: IFiber,
   nextVNode: IVNode,
   parentDom,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context,
   isSVG: boolean,
   isRecycling: boolean
@@ -479,7 +478,7 @@ export default class Component<P, S> implements ComponentLifecycle<P, S> {
   public _pendingState: S | null = null;
   public _fiber: IFiber;
   public _unmounted: boolean = false;
-  public _lifecycle: LifecycleClass;
+  public _lifecycle;
   public _childContext: object | null = null;
   public _isSVG = false;
   public _updating: boolean = true;

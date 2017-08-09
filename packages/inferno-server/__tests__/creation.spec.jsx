@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "inferno-server";
 import Component from "inferno-component";
+import "inferno-hydrate";
 
 /*
  class StatefulComponent extends Component {

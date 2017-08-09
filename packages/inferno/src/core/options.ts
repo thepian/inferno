@@ -12,6 +12,7 @@ export const options: {
     rendering: boolean;
   };
   findDOMNodeEnabled: boolean;
+  hydrate?: (p1: any, p2: any, p3: any, p4: any) => boolean; // TODO: Add types and param names
   recyclingEnabled: boolean;
   roots: Map<any, any>;
 } = {
@@ -28,6 +29,15 @@ export const options: {
   },
   createVNode: null,
   findDOMNodeEnabled: false,
+  hydrate: void 0,
   recyclingEnabled: false,
   roots: new Map()
 };
+
+if (process.env.NODE_ENV !== "production") {
+  options.hydrate = function() {
+    // Add basic validation and warn user if there is content in root node
+
+    return false;
+  };
+}

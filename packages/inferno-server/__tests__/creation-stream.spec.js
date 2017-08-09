@@ -1,4 +1,5 @@
 import { render } from "inferno";
+import "inferno-hydrate";
 import createClass from "inferno-create-class";
 import createElement from "inferno-create-element";
 import { streamAsStaticMarkup } from "inferno-server";

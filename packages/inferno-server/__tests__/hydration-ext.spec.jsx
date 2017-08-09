@@ -1,4 +1,5 @@
 import { render } from "inferno";
+import "inferno-hydrate";
 import Component from "inferno-component";
 import { createContainerWithHTML, innerHTML } from "inferno-utils";
 

@@ -1,5 +1,6 @@
 import createElement from "inferno-create-element";
 import { renderToStaticMarkup } from "inferno-server";
+import "inferno-hydrate";
 
 /*
  class StatefulComponent extends Component {

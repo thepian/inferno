@@ -5,7 +5,6 @@ import {
   isInvalid,
   isNull,
   isStringOrNumber,
-  LifecycleClass,
   throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
@@ -20,7 +19,7 @@ import { componentToDOMNodeMap } from "./rendering";
 export function unmount(
   fiber: IFiber,
   parentDom: Element | null,
-  lifecycle: LifecycleClass,
+  lifecycle,
   canRecycle: boolean,
   isRecycling: boolean
 ) {
@@ -33,9 +32,9 @@ export function unmount(
   } else {
     // It's vNode
     const flags = input.flags;
-    if (flags & VNodeFlags.Element) {
+    if ((flags & VNodeFlags.Element) > 0) {
       unmountElement(fiber, parentDom, lifecycle, canRecycle, isRecycling);
-    } else if (flags & VNodeFlags.Component) {
+    } else if ((flags & VNodeFlags.Component) > 0) {
       unmountComponent(fiber, parentDom, lifecycle, canRecycle, isRecycling);
     }
   }
@@ -44,7 +43,7 @@ export function unmount(
 export function unmountComponent(
   fiber: IFiber,
   parentDom: Element | null,
-  lifecycle: LifecycleClass,
+  lifecycle,
   canRecycle: boolean,
   isRecycling: boolean
 ) {
@@ -127,7 +126,7 @@ export function unmountComponent(
 export function unmountElement(
   fiber: IFiber,
   parentDom: Element | null,
-  lifecycle: LifecycleClass,
+  lifecycle,
   canRecycle: boolean,
   isRecycling: boolean
 ) {

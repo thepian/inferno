@@ -1,4 +1,4 @@
-import { isInvalid, isNullOrUndef, LifecycleClass } from "inferno-shared";
+import { isInvalid, isNullOrUndef } from "inferno-shared";
 import { options } from "../core/options";
 import { IVNode } from "../core/vnode";
 import { svgNS } from "./constants";
@@ -22,7 +22,7 @@ export function replaceDOM(
   fiber: IFiber,
   parentDom,
   newDOM,
-  lifecycle: LifecycleClass,
+  lifecycle,
   isRecycling
 ) {
   unmount(fiber, null, lifecycle, false, isRecycling);
@@ -72,7 +72,7 @@ export function replaceWithNewNode(
   fiber: IFiber,
   nextNode: IVNode,
   parentDom,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   isRecycling: boolean
@@ -113,7 +113,7 @@ export function removeChild(parentDom: Element, dom: Element) {
 export function removeAllChildren(
   dom: Element,
   children: IFiber[],
-  lifecycle: LifecycleClass,
+  lifecycle,
   isRecycling: boolean
 ) {
   if (!options.recyclingEnabled || (options.recyclingEnabled && !isRecycling)) {
@@ -125,7 +125,7 @@ export function removeAllChildren(
 function removeChildren(
   dom: Element | null,
   children: IFiber[],
-  lifecycle: LifecycleClass,
+  lifecycle,
   isRecycling: boolean
 ) {
   for (let i = 0, len = children.length; i < len; i++) {

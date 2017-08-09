@@ -1,7 +1,24 @@
 /**
- * @module Inferno
+ * @module Inferno-hydrate
  */ /** TypeDoc Comment */
 
+import {
+  options,
+  IVNode,
+  EMPTY_OBJ,
+  mount,
+  mountClassComponentCallbacks,
+  mountElement,
+  mountFunctionalComponentCallbacks,
+  mountRef,
+  mountText,
+  patchProp,
+  componentToDOMNodeMap,
+  isControlledFormElement,
+  processElement,
+  IFiber,
+  Fiber
+} from "inferno";
 import {
   isArray,
   isInvalid,
@@ -9,30 +26,11 @@ import {
   isNullOrUndef,
   isObject,
   isStringOrNumber,
-  LifecycleClass,
-  throwError,
-  warning
+  throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
-import { options } from "../core/options";
-import { InfernoChildren, IVNode } from "../core/vnode";
-import { svgNS } from "./constants";
-import {
-  mount,
-  mountClassComponentCallbacks,
-  mountElement,
-  mountFunctionalComponentCallbacks,
-  mountRef,
-  mountText
-} from "./mounting";
-import { patchProp } from "./patching";
-import { componentToDOMNodeMap } from "./rendering";
-import { EMPTY_OBJ, replaceChild } from "./utils";
-import {
-  isControlledFormElement,
-  processElement
-} from "./wrappers/processelements";
-import { IFiber, Fiber, FiberFlags } from "../core/fiber";
+
+options.hydrate = hydrateRoot;
 
 function normalizeChildNodes(parentDom) {
   let dom = parentDom.firstChild;
@@ -55,14 +53,14 @@ function normalizeChildNodes(parentDom) {
     }
   }
 }
-
+const svgNS = "http://www.w3.org/2000/svg";
 const C = options.component;
 
 function hydrateComponent(
   fiber: IFiber,
   vNode: IVNode,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context,
   isSVG: boolean,
   isClass: boolean
@@ -133,7 +131,7 @@ function hydrateElement(
   fiber: IFiber,
   vNode: IVNode,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean
 ): Element {
@@ -146,7 +144,7 @@ function hydrateElement(
   isSVG = isSVG || (flags & VNodeFlags.SvgElement) > 0;
   if (dom.nodeType !== 1 || dom.tagName.toLowerCase() !== vNode.type) {
     if (process.env.NODE_ENV !== "production") {
-      warning(
+      console.warn(
         "Inferno hydration: Server-side markup doesn't match client-side markup or Initial render target is not empty"
       );
     }
@@ -161,7 +159,7 @@ function hydrateElement(
       false
     );
     fiber.dom = newDom;
-    replaceChild(dom.parentNode, newDom, dom);
+    (dom.parentNode as Element).replaceChild(newDom, dom);
 
     return newDom as Element;
   }
@@ -203,10 +201,10 @@ function hydrateElement(
 
 export function hydrateArrayChildren(
   dom,
-  parentFiber,
+  parentFiber: IFiber,
   children,
   parentDOM: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean,
   prefix: string,
@@ -237,11 +235,11 @@ export function hydrateArrayChildren(
           isKeyed = isObject(child)
             ? !isNullOrUndef((child as IVNode).key)
             : false;
-          // parentFiber.flags = (isKeyed ? FiberFlags.HasKeyedChildren : FiberFlags.HasNonKeydChildren);
+          parentFiber.childFlags = isKeyed ? 1 : 2;
         }
         const childFiber = new Fiber(child, prefix + i, child.key);
 
-        parentFiber.children.push(childFiber);
+        (parentFiber.children as IFiber[]).push(childFiber);
 
         if (isNull(dom)) {
           mount(childFiber, child, parentDOM, lifecycle, context, isSVG, true);
@@ -266,9 +264,9 @@ export function hydrateArrayChildren(
 
 function hydrateChildren(
   parentFiber: IFiber,
-  children: InfernoChildren,
+  children,
   parentDom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean
 ): void {
@@ -298,7 +296,7 @@ function hydrateChildren(
       context,
       isSVG,
       "",
-      (parentFiber.childFlags & FiberFlags.HasKeyedChildren) > 0,
+      (parentFiber.childFlags & 1) > 0,
       0
     );
   } else {
@@ -344,7 +342,7 @@ function hydrateText(fiber: IFiber, text: string, dom: Element): Element {
     const newDom = mountText(fiber, text, null, false);
 
     fiber.dom = newDom;
-    replaceChild(dom.parentNode, newDom, dom);
+    (dom.parentNode as Element).replaceChild(newDom, dom);
     return newDom;
   }
 
@@ -359,7 +357,7 @@ function hydrate(
   fiber: IFiber,
   input: IVNode | string,
   dom: Element,
-  lifecycle: LifecycleClass,
+  lifecycle,
   context: Object,
   isSVG: boolean
 ) {
@@ -396,7 +394,7 @@ export function hydrateRoot(
   rootFiber: IFiber,
   input: IVNode | string,
   parentDom: Element | null,
-  lifecycle: LifecycleClass
+  lifecycle
 ) {
   if (!isNull(parentDom)) {
     let dom = parentDom.firstChild as Element;

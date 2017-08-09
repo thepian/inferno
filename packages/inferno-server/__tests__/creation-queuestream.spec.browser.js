@@ -1,6 +1,6 @@
+import "inferno-hydrate";
 import Component from "inferno-component";
 import { streamQueueAsString } from "inferno-server";
-
 import concatStream from "concat-stream-es6";
 import createElement from "inferno-create-element";
 
@@ -9,7 +9,6 @@ class StatefulComponent extends Component {
     return createElement("span", null, `stateless ${this.props.value}!`);
   }
 }
-
 
 class StatefulPromiseComponent extends Component {
   getInitialProps() {

@@ -1,51 +1,35 @@
 {
-  "name": "inferno-server",
+  "name": "inferno-hydrate",
   "version": "4.0.1",
   "license": "MIT",
-  "description": "Provides methods to render HTML strings from Inferno elements",
+  "description": "InfernoJS client side hydration package to re-use server side rendered html.",
   "author": {
-    "name": "Dominic Gannaway",
-    "email": "dg@domgan.com"
+    "name": "Sampo Kivistö",
+    "email": "sampo.kivisto@live.fi"
   },
   "bugs": {
     "url": "https://github.com/infernojs/inferno/issues"
   },
   "homepage": "https://github.com/infernojs/inferno#readme",
-  "keywords": [
-    "babel",
-    "react",
-    "inferno",
-    "framework",
-    "interfaces",
-    "user interfaces",
-    "html",
-    "renderToString",
-    "server",
-    "dom",
-    "browser",
-    "rollup"
-  ],
   "main": "index.js",
   "inferno:main": "dist/index.es.js",
   "typings": "dist/index.d.ts",
+  "keywords": [
+    "inferno",
+    "hyperscript"
+  ],
   "repository": "https://github.com/infernojs/inferno",
   "dependencies": {
     "inferno": "^4.0.1",
     "inferno-shared": "^4.0.1",
     "inferno-vnode-flags": "^4.0.1"
   },
-  "devDependencies": {
-    "inferno-component": "^4.0.1",
-    "inferno-create-class": "^4.0.1",
-    "inferno-create-element": "^4.0.1",
-    "inferno-hydrate": "^4.0.1"
-  },
   "rollup": {
     "bundledDependencies": [
       "inferno-shared",
       "inferno-vnode-flags"
     ],
-    "moduleName": "Inferno.Server",
+    "moduleName": "Inferno.hydrate",
     "moduleGlobals": {
       "inferno": "Inferno"
     }
