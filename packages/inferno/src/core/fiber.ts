@@ -2,7 +2,8 @@ import { IVNode } from "./vnode";
 
 export const enum FiberFlags {
   HasKeyedChildren = 1,
-  HasNonKeydChildren = 1 << 1
+  HasNonKeydChildren = 1 << 1,
+  HasComplexNonKeyed = 1 << 2, // When there is nested arrays we need to use recurring algorithm
 }
 
 export interface IFiber {
@@ -10,7 +11,7 @@ export interface IFiber {
   children: null | IFiber | IFiber[];
   k: string | number | null;
   dom: null | Element;
-  i: string;
+  i: string|number;
   c: any;
   childFlags: number;
   parent: null | IFiber;
@@ -26,13 +27,16 @@ export interface IFiber {
  */
 export function Fiber(
   input: IVNode | string | number,
-  inputPosition: string,
+  inputPosition: string | number,
   k: string | number | null
 ) {
   this.input = input;
   this.dom = null;
   this.children = null; // This value is null for Fibers that hold text nodes
   this.k = k;
+  // This is number that tells the position of fibers vNode, its changed to string when there is nested arrays
+  // Its recommended to not use nested arrays so we optimize for flat arrays keeping this as number type as long as possible
+  // The position is used in non-keyed algorithm to correctly handle invalid nodes
   this.i = inputPosition;
   this.c = null;
   this.childFlags = 0;

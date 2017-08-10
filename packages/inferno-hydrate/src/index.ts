@@ -107,7 +107,7 @@ function hydrateComponent(
     const input = (type as Function)(props, context);
 
     if (!isInvalid(input)) {
-      childFiber = new Fiber(input, "0", null);
+      childFiber = new Fiber(input, 0, null);
       fiber.children = childFiber;
       childFiber.dom = hydrate(
         childFiber,
@@ -207,7 +207,7 @@ export function hydrateArrayChildren(
   lifecycle,
   context: Object,
   isSVG: boolean,
-  prefix: string,
+  prefix,
   isKeyed: boolean,
   counter: number
 ) {
@@ -225,7 +225,7 @@ export function hydrateArrayChildren(
           lifecycle,
           context,
           isSVG,
-          isKeyed ? "" : prefix + i + ".",
+          prefix + i + ".",
           isKeyed,
           counter
         );
@@ -301,7 +301,7 @@ function hydrateChildren(
     );
   } else {
     // It's VNode
-    const childFiber = new Fiber(children as IVNode, "0", null);
+    const childFiber = new Fiber(children as IVNode, 0, null);
 
     parentFiber.children = childFiber;
 

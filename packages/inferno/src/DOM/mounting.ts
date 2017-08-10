@@ -143,13 +143,13 @@ export function mountElement(
           lifecycle,
           context,
           childrenIsSVG,
-          "",
+          0,
           false,
           0
         );
       } else {
         // VNode
-        const childFiber = new Fiber(children as IVNode, "0", null);
+        const childFiber = new Fiber(children as IVNode, 0, null);
 
         fiber.children = childFiber;
 
@@ -206,7 +206,7 @@ export function mountArrayChildren(
   lifecycle,
   context: Object,
   isSVG: boolean,
-  prefix: string,
+  prefix,
   isKeyed: boolean,
   counter: number
 ) {
@@ -276,8 +276,6 @@ export function mountComponent(
   // let childFiber;
 
   if (isClass) {
-    // childFiber = fiber.children = new Fiber(child, '0');
-
     const instance = (C.create as Function)(
       fiber,
       vNode,
@@ -314,7 +312,7 @@ export function mountComponent(
     const input = type(props, context);
 
     if (!isInvalid(input)) {
-      const childFiber = new Fiber(input, "0", null);
+      const childFiber = new Fiber(input, 0, null);
       fiber.children = childFiber;
       childFiber.dom = dom = mount(
         childFiber,

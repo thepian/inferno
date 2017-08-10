@@ -100,13 +100,13 @@ export function render(
   }
   G.INFRender = true;
   const root = roots.get(parentDom);
-  let rootFiber;
+  let rootFiber: IFiber;
   let lifecycle;
   if (root === undefined) {
     if (isInvalid(input)) {
       return;
     }
-    rootFiber = new Fiber(input, "0", null) as IFiber; // Stupid typescript... why casting needed???
+    rootFiber = new Fiber(input, 0, null);
     lifecycle = new Lifecycle();
     if (
       isUndefined(options.hydrate) ||

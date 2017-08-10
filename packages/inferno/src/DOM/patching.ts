@@ -328,12 +328,12 @@ function patchChildren(
           lifecycle,
           context,
           isSVG,
-          "",
+          0,
           false,
           0
         );
       } else {
-        fiber.children = new Fiber(nextChildren, "0", null);
+        fiber.children = new Fiber(nextChildren, 0, null);
         mount(
           fiber.children as IFiber,
           nextChildren,
@@ -378,7 +378,7 @@ function patchChildren(
     }
   } else if (isArray(lastChildFibers)) {
     removeAllChildren(dom, lastChildFibers, lifecycle, isRecycling);
-    fiber.children = new Fiber(nextChildren, "0", null);
+    fiber.children = new Fiber(nextChildren, 0, null);
     mount(
       fiber.children as IFiber,
       nextChildren,
@@ -449,7 +449,8 @@ function patchChildren(
         context,
         isSVG,
         isRecycling,
-        lastLength
+        lastLength,
+        nextLength
       );
     }
   }
@@ -611,112 +612,271 @@ export function patchText(fiber: IFiber, text: string | number) {
   (fiber.dom as Element).nodeValue = text as string;
 }
 
-// TODO: Optimize this.
-export function patchNonKeyedChildren(
+function patchNonKeyedRecursion(
+  pos: number|string,
   childFibers: IFiber[],
-  nextChildren,
-  dom,
+  nextChildren: Array<IVNode|null|string|false|undefined|true|number>,
+  parentDOM: Element,
   lifecycle,
   context: Object,
   isSVG: boolean,
   isRecycling: boolean,
-  lastFibersLength: number
+  prefix: string,
+  addedFibers: number,
+  updatedFibers: number,
+  lastFibersLength: number,
+  iteratedFiber: IFiber,
+  nextChildrenLength: number,
+  nextNode: Element|null
 ) {
-  let fiberX = 0;
-  let fiberY = 0;
-  let prefix = "";
-  let child = null;
-  let fiberCnt = 0;
-  let fiber;
-  let previousX;
-  let iteratedChildren = nextChildren;
-  let previousChildren;
-  let previousPrefix;
-  let nextFiber;
+  let nextChild;
 
-  let tmp;
-  let len = iteratedChildren.length;
-  do {
-    while (len > fiberX) {
-      child = iteratedChildren[fiberX++];
+  for (let j = 0; j < nextChildrenLength; j++) {
+    nextChild = nextChildren[j];
 
-      if (!isInvalid(child)) {
-        if (isStringOrNumber(child) || isVNode(child)) {
-          const fiberPosition = prefix + fiberX;
-          do {
-            if (lastFibersLength <= fiberCnt) {
-              // Always mount and add to end
-              fiber = new Fiber(child, fiberPosition + "", null);
-              mount(fiber, child, dom, lifecycle, context, isSVG, true);
-              childFibers.push(fiber);
-            } else {
-              fiber = childFibers[fiberCnt++];
+    if (pos === prefix + j) {
+      if (isInvalid(nextChild)) {
+        unmount(iteratedFiber, parentDOM, lifecycle, true, isRecycling);
+        lastFibersLength--;
+        childFibers.splice(addedFibers + updatedFibers, 1);
+      } else if (isStringOrNumber(nextChild)) {
+        patch(iteratedFiber, nextChild, parentDOM, lifecycle, context, isSVG, isRecycling);
+        updatedFibers++;
+      } else if (isArray(nextChild)) {
+        // Recursion
 
-              if (fiberPosition === fiber.i) {
-                patch(
-                  fiber,
-                  child,
-                  dom,
-                  lifecycle,
-                  context,
-                  isSVG,
-                  isRecycling
-                );
-              } else if (fiberPosition > fiber.i) {
-                // this fiber is dead, remove it, and reduce counters
-                unmount(fiber, dom, lifecycle, true, isRecycling);
-                childFibers.splice(fiberCnt - 1, 1);
-                lastFibersLength--;
-                fiberCnt--;
-              } else {
-                fiber = new Fiber(child, fiberPosition + "", null);
-                tmp = fiberCnt - 1;
-                nextFiber = tmp < lastFibersLength ? childFibers[tmp] : null;
-
-                insertOrAppend(
-                  fiber,
-                  dom,
-                  mount(fiber, child, dom, lifecycle, context, isSVG, false),
-                  nextFiber.dom
-                );
-                childFibers.splice(tmp, 0, fiber);
-                lastFibersLength++;
-                // fiberCnt++;
-              }
-            }
-          } while (fiberPosition > fiber.i);
-        } else if (isArray(child)) {
-          // Nested arrays => no recursion, no new arrays
-          previousPrefix = prefix;
-          prefix += fiberX + ".";
-          previousChildren = iteratedChildren;
-          iteratedChildren = child;
-          fiberY++;
-          previousX = fiberX;
-          fiberX = 0;
-          len = iteratedChildren.length;
-        }
       }
-    }
+      if (updatedFibers < lastFibersLength) {
+        iteratedFiber = childFibers[addedFibers + updatedFibers];
+        pos = iteratedFiber.i;
+        nextNode = iteratedFiber.dom;
+      } else {
+        nextNode = null;
+      }
+    } else if (!isInvalid(nextChild)) {
+      const newChildFiber = new Fiber(nextChild, prefix + j, null);
 
-    if (fiberY > 0 && len === fiberX) {
-      iteratedChildren = previousChildren;
-      fiberY--;
-      fiberX = previousX;
-      prefix = previousPrefix;
-      len = iteratedChildren.length;
-    }
-  } while (fiberY !== 0 || len > fiberX);
+      insertOrAppend(
+        newChildFiber,
+        parentDOM,
+        mount(
+          newChildFiber,
+          nextChild,
+          parentDOM,
+          lifecycle,
+          context,
+          isSVG,
+          false
+        ),
+        nextNode
+      );
 
-  if (fiberCnt < lastFibersLength) {
-    const firstIndex = fiberCnt;
-
-    for (; fiberCnt < lastFibersLength; fiberCnt++) {
-      unmount(childFibers[fiberCnt], dom, lifecycle, false, isRecycling);
+      childFibers.splice(j, 0, newChildFiber);
+      addedFibers++;
     }
+  }
+  return {
+    pos,
+    addedFibers,
+    updatedFibers,
+    lastFibersLength,
+    iteratedFiber,
+    nextNode
+  }
+}
+
+export function patchNonKeyedChildren(
+  childFibers: IFiber[],
+  nextChildren: Array<IVNode|null|string|false|undefined|true|number>,
+  parentDOM: Element,
+  lifecycle,
+  context: Object,
+  isSVG: boolean,
+  isRecycling: boolean,
+  lastFibersLength: number,
+  nextChildrenLength: number
+) {
+  let nextChild;
+  let iteratedFiber = childFibers[0];
+  let pos = iteratedFiber.i;
+  let nextNode = iteratedFiber.dom;
+  let newChildFiber;
+  let updatedFibers = 0;
+  let addedFibers = 0;
+
+  for (let j = 0; j < nextChildrenLength; j++) {
+    nextChild = nextChildren[j];
+
+    if (pos === j) {
+      if (isInvalid(nextChild)) {
+        unmount(iteratedFiber, parentDOM, lifecycle, true, isRecycling);
+        lastFibersLength--;
+        childFibers.splice(addedFibers + updatedFibers, 1);
+      } else if (isStringOrNumber(nextChild) || isVNode(nextChild)) {
+        patch(iteratedFiber, nextChild, parentDOM, lifecycle, context, isSVG, isRecycling);
+        updatedFibers++;
+      } else if (isArray(nextChild)) {
+        // Recursion
+        const r = patchNonKeyedRecursion(
+          pos,
+          childFibers,
+          nextChildren,
+          parentDOM,
+          lifecycle,
+          context,
+          isSVG,
+          isRecycling,
+          j + ".",
+          addedFibers,
+          updatedFibers,
+          lastFibersLength,
+          iteratedFiber,
+          nextChildrenLength,
+          nextNode
+        );
+
+        pos = r.pos;
+        addedFibers = r.addedFibers;
+        updatedFibers = r.updatedFibers;
+        lastFibersLength = r.lastFibersLength;
+        iteratedFiber = r.iteratedFiber;
+        nextNode = r.nextNode;
+      }
+      if (updatedFibers < lastFibersLength) {
+        iteratedFiber = childFibers[addedFibers + updatedFibers];
+        pos = iteratedFiber.i;
+        nextNode = iteratedFiber.dom;
+      } else {
+        nextNode = null;
+      }
+    } else if (!isInvalid(nextChild)) {
+      newChildFiber = new Fiber(nextChild, j, null);
+
+      insertOrAppend(
+        newChildFiber,
+        parentDOM,
+        mount(
+          newChildFiber,
+          nextChild,
+          parentDOM,
+          lifecycle,
+          context,
+          isSVG,
+          false
+        ),
+        nextNode
+      );
+
+      childFibers.splice(j, 0, newChildFiber);
+      addedFibers++;
+    }
+  }
+  if (updatedFibers < lastFibersLength) {
+    const firstIndex = updatedFibers;
+
+    do {
+      unmount(childFibers[addedFibers + updatedFibers++], parentDOM, lifecycle, true, isRecycling);
+    } while (updatedFibers < lastFibersLength);
 
     childFibers.splice(firstIndex, lastFibersLength - firstIndex); // Remove dead Fibers
   }
+  // let fiberX = 0;
+  // let fiberY = 0;
+  // let prefix = "";
+  // let child = null;
+  // let fiberCnt = 0;
+  // let fiber;
+  // let previousX;
+  // let iteratedChildren = nextChildren;
+  // let previousChildren;
+  // let previousPrefix;
+  // let nextFiber;
+  //
+  // let tmp;
+  // let len = iteratedChildren.length;
+  //
+  // for (i = )
+  // do {
+  //   while (len > fiberX) {
+  //     child = iteratedChildren[fiberX++];
+  //
+  //     if (!isInvalid(child)) {
+  //       if (isStringOrNumber(child) || isVNode(child)) {
+  //         const fiberPosition = prefix + (fiberX - 1);
+  //         do {
+  //           if (lastFibersLength <= fiberCnt) {
+  //             // Always mount and add to end
+  //             fiber = new Fiber(child, fiberPosition + "", null);
+  //             mount(fiber, child, dom, lifecycle, context, isSVG, true);
+  //             childFibers.push(fiber);
+  //           } else {
+  //             fiber = childFibers[fiberCnt++];
+  //
+  //             if (fiberPosition === fiber.i) {
+  //               patch(
+  //                 fiber,
+  //                 child,
+  //                 dom,
+  //                 lifecycle,
+  //                 context,
+  //                 isSVG,
+  //                 isRecycling
+  //               );
+  //             } else if (fiberPosition > fiber.i) {
+  //               // this fiber is dead, remove it, and reduce counters
+  //               unmount(fiber, dom, lifecycle, true, isRecycling);
+  //               childFibers.splice(fiberCnt - 1, 1);
+  //               lastFibersLength--;
+  //               fiberCnt--;
+  //             } else {
+  //               fiber = new Fiber(child, fiberPosition + "", null);
+  //               tmp = fiberCnt - 1;
+  //               nextFiber = tmp < lastFibersLength ? childFibers[tmp] : null;
+  //
+  //               insertOrAppend(
+  //                 fiber,
+  //                 dom,
+  //                 mount(fiber, child, dom, lifecycle, context, isSVG, false),
+  //                 nextFiber.dom
+  //               );
+  //               childFibers.splice(tmp, 0, fiber);
+  //               lastFibersLength++;
+  //               // fiberCnt++;
+  //             }
+  //           }
+  //         } while (fiberPosition > fiber.i);
+  //       } else if (isArray(child)) {
+  //         // Nested arrays => no recursion, no new arrays
+  //         previousPrefix = prefix;
+  //         prefix += fiberX + ".";
+  //         previousChildren = iteratedChildren;
+  //         iteratedChildren = child;
+  //         fiberY++;
+  //         previousX = fiberX;
+  //         fiberX = 0;
+  //         len = iteratedChildren.length;
+  //       }
+  //     }
+  //   }
+  //
+  //   if (fiberY > 0 && len === fiberX) {
+  //     iteratedChildren = previousChildren;
+  //     fiberY--;
+  //     fiberX = previousX;
+  //     prefix = previousPrefix;
+  //     len = iteratedChildren.length;
+  //   }
+  // } while (fiberY !== 0 || len > fiberX);
+
+  // if (fiberCnt < lastFibersLength) {
+  //   const firstIndex = fiberCnt;
+  //
+  //   do {
+  //     unmount(childFibers[fiberCnt++], dom, lifecycle, false, isRecycling);
+  //   } while (fiberCnt < lastFibersLength);
+  //
+  //   childFibers.splice(firstIndex, lastFibersLength - firstIndex); // Remove dead Fibers
+  // }
 }
 
 export function patchKeyedChildren(
@@ -804,7 +964,7 @@ export function patchKeyedChildren(
 
       while (bStart <= bEnd) {
         node = b[bStart];
-        const fiber = new Fiber(node, bStart + "", node.key);
+        const fiber = new Fiber(node, bStart, node.key);
         insertOrAppend(
           fiber,
           parentDOM,
@@ -863,7 +1023,7 @@ export function patchKeyedChildren(
           nextPos = pos + 1;
           nextNode = nextPos < bLength ? newChildFibers[nextPos].dom : null;
 
-          const fiber = new Fiber(node, bStart + "", node.key);
+          const fiber = new Fiber(node, bStart, node.key);
 
           insertOrAppend(
             fiber,
@@ -894,7 +1054,7 @@ export function patchKeyedChildren(
         bNode = b[i];
 
         if (isUndefined(newChildFibers[i])) {
-          const fiber = new Fiber(bNode, i + "", bNode.key);
+          const fiber = new Fiber(bNode, i, bNode.key);
 
           insertOrAppend(
             fiber,
@@ -1108,7 +1268,7 @@ function removeProp(prop: string, lastValue, dom, nextFlags: number) {
   if (prop === "value") {
     // When removing value of select element, it needs to be set to null instead empty string, because empty string is valid value for option which makes that option selected
     // MS IE/Edge don't follow html spec for textArea and input elements and we need to set empty string to value in those cases to avoid "null" and "undefined" texts
-    dom.value = nextFlags & VNodeFlags.SelectElement ? null : "";
+    dom.value = (nextFlags & VNodeFlags.SelectElement) > 0 ? null : "";
   } else if (prop === "style") {
     dom.removeAttribute("style");
   } else if (isAttrAnEvent(prop)) {

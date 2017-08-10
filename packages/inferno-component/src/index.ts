@@ -145,7 +145,7 @@ function createInstance(
   instance._pendingSetState = false;
   instance._fiber = componentsFiber;
 
-  componentsFiber.children = new Fiber(renderOutput, "0", null);
+  componentsFiber.children = new Fiber(renderOutput, 0, null);
 
   if (renderOutput !== null && typeof renderOutput === "object") {
     if ((renderOutput.flags & VNodeFlags.Component) > 0) {
