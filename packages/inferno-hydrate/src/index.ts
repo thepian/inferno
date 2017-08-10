@@ -295,7 +295,7 @@ function hydrateChildren(
       lifecycle,
       context,
       isSVG,
-      "",
+      0,
       (parentFiber.childFlags & 1) > 0,
       0
     );

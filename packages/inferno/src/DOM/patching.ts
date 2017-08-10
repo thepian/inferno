@@ -613,9 +613,11 @@ export function patchText(fiber: IFiber, text: string | number) {
 }
 
 function patchNonKeyedRecursion(
-  pos: number|string,
+  pos: number | string,
   childFibers: IFiber[],
-  nextChildren: Array<IVNode|null|string|false|undefined|true|number>,
+  nextChildren: Array<
+    IVNode | null | string | false | undefined | true | number
+  >,
   parentDOM: Element,
   lifecycle,
   context: Object,
@@ -627,7 +629,7 @@ function patchNonKeyedRecursion(
   lastFibersLength: number,
   iteratedFiber: IFiber,
   nextChildrenLength: number,
-  nextNode: Element|null
+  nextNode: Element | null
 ) {
   let nextChild;
 
@@ -639,12 +641,19 @@ function patchNonKeyedRecursion(
         unmount(iteratedFiber, parentDOM, lifecycle, true, isRecycling);
         lastFibersLength--;
         childFibers.splice(addedFibers + updatedFibers, 1);
-      } else if (isStringOrNumber(nextChild)) {
-        patch(iteratedFiber, nextChild, parentDOM, lifecycle, context, isSVG, isRecycling);
+      } else if (isStringOrNumber(nextChild) || isVNode(nextChild)) {
+        patch(
+          iteratedFiber,
+          nextChild,
+          parentDOM,
+          lifecycle,
+          context,
+          isSVG,
+          isRecycling
+        );
         updatedFibers++;
       } else if (isArray(nextChild)) {
         // Recursion
-
       }
       if (updatedFibers < lastFibersLength) {
         iteratedFiber = childFibers[addedFibers + updatedFibers];
@@ -682,12 +691,14 @@ function patchNonKeyedRecursion(
     lastFibersLength,
     iteratedFiber,
     nextNode
-  }
+  };
 }
 
 export function patchNonKeyedChildren(
   childFibers: IFiber[],
-  nextChildren: Array<IVNode|null|string|false|undefined|true|number>,
+  nextChildren: Array<
+    IVNode | null | string | false | undefined | true | number
+  >,
   parentDOM: Element,
   lifecycle,
   context: Object,
@@ -713,7 +724,15 @@ export function patchNonKeyedChildren(
         lastFibersLength--;
         childFibers.splice(addedFibers + updatedFibers, 1);
       } else if (isStringOrNumber(nextChild) || isVNode(nextChild)) {
-        patch(iteratedFiber, nextChild, parentDOM, lifecycle, context, isSVG, isRecycling);
+        patch(
+          iteratedFiber,
+          nextChild,
+          parentDOM,
+          lifecycle,
+          context,
+          isSVG,
+          isRecycling
+        );
         updatedFibers++;
       } else if (isArray(nextChild)) {
         // Recursion
@@ -775,7 +794,13 @@ export function patchNonKeyedChildren(
     const firstIndex = updatedFibers;
 
     do {
-      unmount(childFibers[addedFibers + updatedFibers++], parentDOM, lifecycle, true, isRecycling);
+      unmount(
+        childFibers[addedFibers + updatedFibers++],
+        parentDOM,
+        lifecycle,
+        true,
+        isRecycling
+      );
     } while (updatedFibers < lastFibersLength);
 
     childFibers.splice(firstIndex, lastFibersLength - firstIndex); // Remove dead Fibers
