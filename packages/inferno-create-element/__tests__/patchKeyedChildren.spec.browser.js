@@ -1188,6 +1188,7 @@ describe("keyed-nodes", () => {
 
       it("'cde' => [ div ]", () => {
         const f = document.createDocumentFragment();
+        debugger;
         const a = createElement("div", null, "cde");
         const b = createElement("div", null, createElement("div", null));
         render(a, f);

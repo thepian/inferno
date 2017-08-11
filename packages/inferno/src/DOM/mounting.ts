@@ -96,6 +96,8 @@ export function mountText(
     appendChild(parentDom, dom);
   }
 
+  fiber.childFlags = FiberFlags.HasTextChildren;
+
   return dom;
 }
 
@@ -132,6 +134,7 @@ export function mountElement(
     if (isStringOrNumber(children)) {
       // Text
       setTextContent(dom, children as string | number);
+      fiber.childFlags = FiberFlags.HasTextChildren;
     } else {
       const childrenIsSVG = isSVG === true && vNode.type !== "foreignObject";
       if (isArray(children)) {
@@ -152,6 +155,7 @@ export function mountElement(
         const childFiber = new Fiber(children as IVNode, 0, null);
 
         fiber.children = childFiber;
+        fiber.childFlags = FiberFlags.HasBasicChildren;
 
         mount(
           childFiber,
@@ -164,6 +168,8 @@ export function mountElement(
         );
       }
     }
+  } else {
+    fiber.childFlags = FiberFlags.HasInvalidChildren;
   }
   if (!isNull(props)) {
     let hasControlledValue = false;
@@ -210,6 +216,7 @@ export function mountArrayChildren(
   isKeyed: boolean,
   counter: number
 ) {
+  fiber.childFlags = FiberFlags.HasNonKeydChildren; // Default to non keyed
   for (let i = 0, len = children.length; i < len; i++) {
     const child = children[i];
 
@@ -230,7 +237,7 @@ export function mountArrayChildren(
       } else {
         if (fiber.children === null) {
           fiber.children = [];
-          isKeyed = isObject(child)
+          isKeyed = isKeyed || isObject(child)
             ? !isNullOrUndef((child as IVNode).key)
             : false;
           fiber.childFlags = isKeyed

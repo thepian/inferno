@@ -13,7 +13,7 @@ import {
 import VNodeFlags from "inferno-vnode-flags";
 import { IFiber, Fiber, FiberFlags } from "../core/fiber";
 import { options } from "../core/options";
-import { isVNode, IVNode, Refs } from "../core/vnode";
+import {isVNode, IVNode, Refs} from "../core/vnode";
 import {
   booleanProps,
   delegatedEvents,
@@ -157,24 +157,6 @@ export function patch(
   fiber.input = nextInput;
 }
 
-function unmountChildren(
-  fiber: IFiber,
-  children,
-  dom: Element,
-  lifecycle,
-  isRecycling: boolean
-) {
-  // TODO: Check this, we could add Fiber flags to optimize this
-  if (children === null) {
-    dom.textContent = "";
-  } else if (children.input && children.input.flags > 0) {
-    unmount(children, dom, lifecycle, true, isRecycling);
-  } else if (isArray(children)) {
-    removeAllChildren(dom, children, lifecycle, isRecycling);
-  }
-  fiber.children = null;
-}
-
 export function patchElement(
   fiber: IFiber,
   lastVNode: IVNode,
@@ -208,22 +190,199 @@ export function patchElement(
     const nextRef = nextVNode.ref;
     const lastClassName = lastVNode.className;
     const nextClassName = nextVNode.className;
+    const childFlags = fiber.childFlags;
+    let childFibers = fiber.children as any;
 
     isSVG = isSVG || (nextFlags & VNodeFlags.SvgElement) > 0;
+
     if (lastChildren !== nextChildren) {
-      const childrenIsSVG =
-        isSVG === true && nextVNode.type !== "foreignObject";
-      patchChildren(
-        fiber,
-        nextFlags,
-        fiber.children as IFiber[],
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        childrenIsSVG,
-        isRecycling
-      );
+      const childrenIsSVG = isSVG === true && nextVNode.type !== "foreignObject";
+
+      if ((childFlags & FiberFlags.HasTextChildren) > 0) {
+        if (isInvalid(nextChildren)) {
+          // Small trick to update text content being empty instead removing it
+          updateTextContent(dom, '');
+          fiber.childFlags = FiberFlags.HasInvalidChildren;
+        } else if (isStringOrNumber(nextChildren)) {
+          updateTextContent(dom, nextChildren);
+        } else if (isVNode(nextChildren)) {
+          childFibers = new Fiber(nextChildren, 0, null) as IFiber;
+          const newDOM = mount(
+            childFibers,
+            nextChildren,
+            dom,
+            lifecycle,
+            context,
+            childrenIsSVG,
+            false
+          );
+          replaceChild(
+            dom,
+            newDOM,
+            dom.firstChild
+          );
+          childFibers.dom = newDOM;
+          fiber.children = childFibers;
+          fiber.childFlags = FiberFlags.HasBasicChildren;
+        } else {
+          dom.removeChild(dom.firstChild as Element);
+          fiber.children = null;
+          mountArrayChildren(
+            fiber,
+            nextChildren,
+            dom,
+            lifecycle,
+            context,
+            childrenIsSVG,
+            0,
+            false,
+            0
+          );
+        }
+      } else if ((childFlags & FiberFlags.HasInvalidChildren) > 0) {
+        if (!isInvalid(nextChildren)) {
+          if (isStringOrNumber(nextChildren)) {
+            setTextContent(dom, nextChildren);
+            fiber.childFlags = FiberFlags.HasTextChildren;
+          } else if (isVNode(nextChildren)) {
+            childFibers = new Fiber(nextChildren, 0, null) as IFiber;
+            mount(
+              childFibers,
+              nextChildren,
+              dom,
+              lifecycle,
+              context,
+              childrenIsSVG,
+              true
+            );
+            fiber.children = childFibers;
+            fiber.childFlags = FiberFlags.HasBasicChildren;
+          } else {
+            mountArrayChildren(fiber, nextChildren, dom, lifecycle, context, isSVG, 0, false, 0);
+          }
+        }
+      } else if ((childFlags & FiberFlags.HasBasicChildren) > 0) {
+        if (isInvalid(nextChildren)) {
+          unmount(
+            childFibers,
+            dom,
+            lifecycle,
+            true,
+            isRecycling
+          );
+          fiber.children = null;
+          fiber.childFlags = FiberFlags.HasInvalidChildren;
+        } else if (isVNode(nextChildren)) {
+          patch(
+            childFibers,
+            nextChildren,
+            dom,
+            lifecycle,
+            context,
+            isSVG,
+            isRecycling
+          );
+        } else if (isStringOrNumber(nextChildren)) {
+          replaceWithNewNode(
+            childFibers,
+            nextChildren,
+            dom,
+            lifecycle,
+            context,
+            isSVG,
+            isRecycling
+          );
+        } else {
+          unmount(
+            childFibers,
+            dom,
+            lifecycle,
+            true,
+            isRecycling
+          );
+          mountArrayChildren(fiber, nextChildren, dom, lifecycle, context, isSVG, 0, false, 0);
+        }
+      } else if ((childFlags & FiberFlags.HasMultiple) > 0) {
+        if (isInvalid(nextChildren)) {
+          removeAllChildren(dom, childFibers, lifecycle, isRecycling);
+          fiber.children = null;
+          fiber.childFlags = FiberFlags.HasInvalidChildren;
+        } else if (isArray(nextChildren)) {
+          const lastLength = childFibers === null ? 0 : childFibers.length;
+          const nextLength = (nextChildren as IVNode[]).length;
+
+          if (lastLength === 0) {
+            if (nextLength > 0) {
+              mountArrayChildren(
+                fiber,
+                nextChildren,
+                dom,
+                lifecycle,
+                context,
+                childrenIsSVG,
+                0,
+                false,
+                0
+              );
+            }
+            return;
+          } else if (nextLength === 0) {
+            removeAllChildren(dom, childFibers as IFiber[], lifecycle, isRecycling);
+            fiber.children = null;
+            fiber.childFlags = FiberFlags.HasInvalidChildren;
+            return;
+          }
+
+          if ((childFlags & FiberFlags.HasKeyedChildren) > 0 && isKeyed(nextChildren as IVNode[])) {
+            patchKeyedChildren(
+              fiber,
+              childFibers as IFiber[],
+              nextChildren as IVNode[],
+              dom,
+              lifecycle,
+              context,
+              childrenIsSVG,
+              isRecycling,
+              lastLength,
+              nextLength
+            );
+          } else {
+            patchNonKeyedChildren(
+              childFibers as IFiber[],
+              nextChildren as IVNode[],
+              dom,
+              lifecycle,
+              context,
+              childrenIsSVG,
+              isRecycling,
+              lastLength,
+              nextLength
+            );
+          }
+        } else if (isStringOrNumber(nextChildren)) {
+          removeAllChildren(dom, childFibers, lifecycle, isRecycling);
+          setTextContent(dom, nextChildren);
+          fiber.childFlags = FiberFlags.HasTextChildren;
+        } else {
+          // vNode
+          removeAllChildren(dom, childFibers, lifecycle, isRecycling);
+          childFibers = new Fiber(nextChildren, 0, null) as IFiber;
+          mount(
+            childFibers,
+            nextChildren,
+            dom,
+            lifecycle,
+            context,
+            childrenIsSVG,
+            true
+          );
+          fiber.children = childFibers;
+          fiber.childFlags = FiberFlags.HasBasicChildren;
+        }
+      } else {
+        debugger;
+        throw Error('FIBER FLAG MISSING')
+      }
     }
 
     // inlined patchProps  -- starts --
@@ -286,172 +445,6 @@ export function patchElement(
       if (lastVNode.ref !== nextRef || isRecycling) {
         mountRef(dom as Element, nextRef, lifecycle);
       }
-    }
-  }
-}
-
-function patchChildren(
-  fiber: IFiber,
-  nextFlags: VNodeFlags,
-  lastChildFibers: IFiber[],
-  nextChildren,
-  dom: Element,
-  lifecycle,
-  context: Object,
-  isSVG: boolean,
-  isRecycling: boolean
-) {
-  let patchArray = false;
-  let patchKeyed = false;
-
-  if ((nextFlags & VNodeFlags.HasNonKeyedChildren) > 0) {
-    patchArray = true;
-  } else if (
-    (fiber.childFlags & FiberFlags.HasKeyedChildren) > 0 &&
-    (nextFlags & VNodeFlags.HasKeyedChildren) > 0
-  ) {
-    patchKeyed = true;
-    patchArray = true;
-  } else if (isInvalid(nextChildren)) {
-    unmountChildren(fiber, lastChildFibers, dom, lifecycle, isRecycling);
-  } else if (lastChildFibers === null) {
-    // If there was nothing previously, then just mount
-    if (isStringOrNumber(nextChildren)) {
-      setTextContent(dom, nextChildren);
-    } else {
-      (fiber.dom as any).textContent = "";
-      if (isArray(nextChildren)) {
-        mountArrayChildren(
-          fiber,
-          nextChildren,
-          dom,
-          lifecycle,
-          context,
-          isSVG,
-          0,
-          false,
-          0
-        );
-      } else {
-        fiber.children = new Fiber(nextChildren, 0, null);
-        mount(
-          fiber.children as IFiber,
-          nextChildren,
-          dom,
-          lifecycle,
-          context,
-          isSVG,
-          true
-        );
-      }
-    }
-  } else if (isStringOrNumber(nextChildren)) {
-    if (isStringOrNumber(lastChildFibers)) {
-      updateTextContent(dom, nextChildren);
-    } else {
-      unmountChildren(fiber, lastChildFibers, dom, lifecycle, isRecycling);
-      setTextContent(dom, nextChildren);
-    }
-  } else if (isArray(nextChildren)) {
-    if (isArray(lastChildFibers)) {
-      patchArray = true;
-
-      if (
-        (fiber.childFlags & FiberFlags.HasKeyedChildren) > 0 &&
-        isKeyed(nextChildren)
-      ) {
-        patchKeyed = true;
-      }
-    } else {
-      unmountChildren(fiber, lastChildFibers, dom, lifecycle, isRecycling);
-      mountArrayChildren(
-        fiber,
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        isSVG,
-        "",
-        false,
-        0
-      );
-    }
-  } else if (isArray(lastChildFibers)) {
-    removeAllChildren(dom, lastChildFibers, lifecycle, isRecycling);
-    fiber.children = new Fiber(nextChildren, 0, null);
-    mount(
-      fiber.children as IFiber,
-      nextChildren,
-      dom,
-      lifecycle,
-      context,
-      isSVG,
-      true
-    );
-  } else {
-    // next is input, last is input
-    patch(
-      lastChildFibers,
-      nextChildren,
-      dom,
-      lifecycle,
-      context,
-      isSVG,
-      isRecycling
-    );
-  }
-  if (patchArray) {
-    // Common optimizations for arrays
-    const lastLength =
-      fiber.children !== null ? (fiber.children as any[]).length : 0;
-    const nextLength = nextChildren.length;
-
-    if (lastLength === 0) {
-      if (nextLength > 0) {
-        mountArrayChildren(
-          fiber,
-          nextChildren,
-          dom,
-          lifecycle,
-          context,
-          isSVG,
-          "",
-          false,
-          0
-        );
-      }
-      return;
-    } else if (nextLength === 0) {
-      removeAllChildren(dom, lastChildFibers, lifecycle, isRecycling);
-      fiber.children = null; // TODO: Optimize with Fiber flags
-      return;
-    }
-
-    if (patchKeyed) {
-      patchKeyedChildren(
-        fiber,
-        lastChildFibers,
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        isSVG,
-        isRecycling,
-        lastLength,
-        nextLength
-      );
-    } else {
-      patchNonKeyedChildren(
-        lastChildFibers,
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        isSVG,
-        isRecycling,
-        lastLength,
-        nextLength
-      );
     }
   }
 }
@@ -612,88 +605,6 @@ export function patchText(fiber: IFiber, text: string | number) {
   (fiber.dom as Element).nodeValue = text as string;
 }
 
-function patchNonKeyedRecursion(
-  pos: number | string,
-  childFibers: IFiber[],
-  nextChildren: Array<
-    IVNode | null | string | false | undefined | true | number
-  >,
-  parentDOM: Element,
-  lifecycle,
-  context: Object,
-  isSVG: boolean,
-  isRecycling: boolean,
-  prefix: string,
-  addedFibers: number,
-  updatedFibers: number,
-  lastFibersLength: number,
-  iteratedFiber: IFiber,
-  nextChildrenLength: number,
-  nextNode: Element | null
-) {
-  let nextChild;
-
-  for (let j = 0; j < nextChildrenLength; j++) {
-    nextChild = nextChildren[j];
-
-    if (pos === prefix + j) {
-      if (isInvalid(nextChild)) {
-        unmount(iteratedFiber, parentDOM, lifecycle, true, isRecycling);
-        lastFibersLength--;
-        childFibers.splice(addedFibers + updatedFibers, 1);
-      } else if (isStringOrNumber(nextChild) || isVNode(nextChild)) {
-        patch(
-          iteratedFiber,
-          nextChild,
-          parentDOM,
-          lifecycle,
-          context,
-          isSVG,
-          isRecycling
-        );
-        updatedFibers++;
-      } else if (isArray(nextChild)) {
-        // Recursion
-      }
-      if (updatedFibers < lastFibersLength) {
-        iteratedFiber = childFibers[addedFibers + updatedFibers];
-        pos = iteratedFiber.i;
-        nextNode = iteratedFiber.dom;
-      } else {
-        nextNode = null;
-      }
-    } else if (!isInvalid(nextChild)) {
-      const newChildFiber = new Fiber(nextChild, prefix + j, null);
-
-      insertOrAppend(
-        newChildFiber,
-        parentDOM,
-        mount(
-          newChildFiber,
-          nextChild,
-          parentDOM,
-          lifecycle,
-          context,
-          isSVG,
-          false
-        ),
-        nextNode
-      );
-
-      childFibers.splice(j, 0, newChildFiber);
-      addedFibers++;
-    }
-  }
-  return {
-    pos,
-    addedFibers,
-    updatedFibers,
-    lastFibersLength,
-    iteratedFiber,
-    nextNode
-  };
-}
-
 export function patchNonKeyedChildren(
   childFibers: IFiber[],
   nextChildren: Array<
@@ -723,7 +634,7 @@ export function patchNonKeyedChildren(
         unmount(iteratedFiber, parentDOM, lifecycle, true, isRecycling);
         lastFibersLength--;
         childFibers.splice(addedFibers + updatedFibers, 1);
-      } else if (isStringOrNumber(nextChild) || isVNode(nextChild)) {
+      } else {
         patch(
           iteratedFiber,
           nextChild,
@@ -734,32 +645,6 @@ export function patchNonKeyedChildren(
           isRecycling
         );
         updatedFibers++;
-      } else if (isArray(nextChild)) {
-        // Recursion
-        const r = patchNonKeyedRecursion(
-          pos,
-          childFibers,
-          nextChildren,
-          parentDOM,
-          lifecycle,
-          context,
-          isSVG,
-          isRecycling,
-          j + ".",
-          addedFibers,
-          updatedFibers,
-          lastFibersLength,
-          iteratedFiber,
-          nextChildrenLength,
-          nextNode
-        );
-
-        pos = r.pos;
-        addedFibers = r.addedFibers;
-        updatedFibers = r.updatedFibers;
-        lastFibersLength = r.lastFibersLength;
-        iteratedFiber = r.iteratedFiber;
-        nextNode = r.nextNode;
       }
       if (updatedFibers < lastFibersLength) {
         iteratedFiber = childFibers[addedFibers + updatedFibers];
@@ -805,103 +690,6 @@ export function patchNonKeyedChildren(
 
     childFibers.splice(firstIndex, lastFibersLength - firstIndex); // Remove dead Fibers
   }
-  // let fiberX = 0;
-  // let fiberY = 0;
-  // let prefix = "";
-  // let child = null;
-  // let fiberCnt = 0;
-  // let fiber;
-  // let previousX;
-  // let iteratedChildren = nextChildren;
-  // let previousChildren;
-  // let previousPrefix;
-  // let nextFiber;
-  //
-  // let tmp;
-  // let len = iteratedChildren.length;
-  //
-  // for (i = )
-  // do {
-  //   while (len > fiberX) {
-  //     child = iteratedChildren[fiberX++];
-  //
-  //     if (!isInvalid(child)) {
-  //       if (isStringOrNumber(child) || isVNode(child)) {
-  //         const fiberPosition = prefix + (fiberX - 1);
-  //         do {
-  //           if (lastFibersLength <= fiberCnt) {
-  //             // Always mount and add to end
-  //             fiber = new Fiber(child, fiberPosition + "", null);
-  //             mount(fiber, child, dom, lifecycle, context, isSVG, true);
-  //             childFibers.push(fiber);
-  //           } else {
-  //             fiber = childFibers[fiberCnt++];
-  //
-  //             if (fiberPosition === fiber.i) {
-  //               patch(
-  //                 fiber,
-  //                 child,
-  //                 dom,
-  //                 lifecycle,
-  //                 context,
-  //                 isSVG,
-  //                 isRecycling
-  //               );
-  //             } else if (fiberPosition > fiber.i) {
-  //               // this fiber is dead, remove it, and reduce counters
-  //               unmount(fiber, dom, lifecycle, true, isRecycling);
-  //               childFibers.splice(fiberCnt - 1, 1);
-  //               lastFibersLength--;
-  //               fiberCnt--;
-  //             } else {
-  //               fiber = new Fiber(child, fiberPosition + "", null);
-  //               tmp = fiberCnt - 1;
-  //               nextFiber = tmp < lastFibersLength ? childFibers[tmp] : null;
-  //
-  //               insertOrAppend(
-  //                 fiber,
-  //                 dom,
-  //                 mount(fiber, child, dom, lifecycle, context, isSVG, false),
-  //                 nextFiber.dom
-  //               );
-  //               childFibers.splice(tmp, 0, fiber);
-  //               lastFibersLength++;
-  //               // fiberCnt++;
-  //             }
-  //           }
-  //         } while (fiberPosition > fiber.i);
-  //       } else if (isArray(child)) {
-  //         // Nested arrays => no recursion, no new arrays
-  //         previousPrefix = prefix;
-  //         prefix += fiberX + ".";
-  //         previousChildren = iteratedChildren;
-  //         iteratedChildren = child;
-  //         fiberY++;
-  //         previousX = fiberX;
-  //         fiberX = 0;
-  //         len = iteratedChildren.length;
-  //       }
-  //     }
-  //   }
-  //
-  //   if (fiberY > 0 && len === fiberX) {
-  //     iteratedChildren = previousChildren;
-  //     fiberY--;
-  //     fiberX = previousX;
-  //     prefix = previousPrefix;
-  //     len = iteratedChildren.length;
-  //   }
-  // } while (fiberY !== 0 || len > fiberX);
-
-  // if (fiberCnt < lastFibersLength) {
-  //   const firstIndex = fiberCnt;
-  //
-  //   do {
-  //     unmount(childFibers[fiberCnt++], dom, lifecycle, false, isRecycling);
-  //   } while (fiberCnt < lastFibersLength);
-  //
-  //   childFibers.splice(firstIndex, lastFibersLength - firstIndex); // Remove dead Fibers
-  // }
 }
 
 export function patchKeyedChildren(

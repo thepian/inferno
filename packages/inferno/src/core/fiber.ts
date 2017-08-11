@@ -3,7 +3,10 @@ import { IVNode } from "./vnode";
 export const enum FiberFlags {
   HasKeyedChildren = 1,
   HasNonKeydChildren = 1 << 1,
-  HasComplexNonKeyed = 1 << 2, // When there is nested arrays we need to use recurring algorithm
+  HasTextChildren = 1 << 2,
+  HasInvalidChildren = 1 << 3,
+  HasBasicChildren = 1 << 4,
+  HasMultiple = HasKeyedChildren | HasNonKeydChildren,
 }
 
 export interface IFiber {

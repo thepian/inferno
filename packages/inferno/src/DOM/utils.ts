@@ -70,7 +70,7 @@ export function documentCreateElement(tag, isSVG: boolean): Element {
 
 export function replaceWithNewNode(
   fiber: IFiber,
-  nextNode: IVNode,
+  nextInput: IVNode|string|number,
   parentDom,
   lifecycle,
   context: Object,
@@ -82,7 +82,7 @@ export function replaceWithNewNode(
   // fiber.children = null;
   const newDom = mount(
     fiber,
-    nextNode,
+    nextInput,
     parentDom,
     lifecycle,
     context,
@@ -100,9 +100,6 @@ export function replaceWithNewNode(
 }
 
 export function replaceChild(parentDom, nextDom, lastDom) {
-  if (!parentDom) {
-    parentDom = lastDom.parentNode;
-  }
   parentDom.replaceChild(nextDom, lastDom);
 }
 

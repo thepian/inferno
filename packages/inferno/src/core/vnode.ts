@@ -175,6 +175,6 @@ export function cloneVNode(
   );
 }
 
-export function isVNode(o: IVNode): o is IVNode {
+export function isVNode(o: any): o is IVNode {
   return !!o.flags;
 }

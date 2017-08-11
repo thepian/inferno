@@ -196,6 +196,7 @@ var N = 200;
   Inferno.options.recyclingEnabled = true; // Advanced optimisation
   var createVNode = Inferno.createVNode;
   var container = document.getElementById("grid");
+  var VNodeFlags = Inferno.VNodeFlags;
 
   var counter;
 
