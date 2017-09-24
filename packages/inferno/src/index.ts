@@ -6,11 +6,11 @@
 import { NO_OP, warning } from "inferno-shared";
 import { default as _VNodeFlags } from "inferno-vnode-flags";
 import {
-  cloneVNode,
   createVNode,
   getFlagsForElementVnode,
   InfernoChildren,
   InfernoInput,
+  IV as _IV,
   normalize as internal_normalize,
   options,
   Props,
@@ -54,6 +54,7 @@ if (process.env.NODE_ENV !== "production") {
 export declare const VNodeFlags: _VNodeFlags;
 export declare const Root: _Root;
 export declare const Refs: _Refs;
+export declare const IV: _IV;
 
 const version = process.env.INFERNO_VERSION;
 
@@ -63,7 +64,6 @@ export default {
   EMPTY_OBJ, // used to shared common items between Inferno libs
   NO_OP, // used to shared common items between Inferno libs
   Component,
-  cloneVNode, // cloning
   createPortal,
   createRenderer,
   createVNode, // core shapes
@@ -87,7 +87,6 @@ export {
   NO_OP,
   Props,
   VNode,
-  cloneVNode,
   createPortal,
   createRenderer,
   createVNode,

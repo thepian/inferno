@@ -89,7 +89,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #1 ", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, key, id }) {
@@ -136,6 +136,7 @@ describe("Children - (JSX)", () => {
         )
       );
       addTab = container.querySelector("#add");
+
       addTab.click();
       expect(container.innerHTML).toBe(
         innerHTML(
@@ -144,7 +145,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #2", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, key, id }) {
@@ -199,7 +200,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #3", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, key, id }) {
@@ -508,7 +509,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #4", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, id }) {
@@ -559,7 +560,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #5", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, id }) {
@@ -610,7 +611,7 @@ describe("Children - (JSX)", () => {
       );
     });
 
-    it("Should append child node to correct location when its empty at the beginning ", function() {
+    it("Should append child node to correct location when its empty at the beginning #6", function() {
       const _tabs = [];
 
       function Tab({ title, onSelect, id }) {
@@ -868,9 +869,11 @@ describe("Children - (JSX)", () => {
       visible = false;
       activeOne = items3;
       renderIt();
+
       expect(container.innerHTML).toBe(
         innerHTML('<div class="c"><p>v</p><p>a</p></div>')
       );
+
 
       visible = true;
       activeOne = items3;
@@ -929,6 +932,7 @@ describe("Children - (JSX)", () => {
         );
       }
 
+      debugger;
       visibleOne = true;
       activeOne = items;
       visibleTwo = false;

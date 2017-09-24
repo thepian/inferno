@@ -61,7 +61,7 @@ export function processSelect(
   }
 }
 
-export function applyValue(vNode, dom, nextPropsOrEmpty, mounting: boolean) {
+function applyValue(vNode, dom, nextPropsOrEmpty, mounting: boolean) {
   if (nextPropsOrEmpty.multiple !== dom.multiple) {
     dom.multiple = nextPropsOrEmpty.multiple;
   }

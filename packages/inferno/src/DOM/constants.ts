@@ -87,6 +87,7 @@ skipProps.add("childrenType");
 skipProps.add("defaultValue");
 skipProps.add("ref");
 skipProps.add("key");
+skipProps.add("className");
 skipProps.add("checked");
 skipProps.add("multiple");
 

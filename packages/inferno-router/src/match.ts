@@ -2,7 +2,7 @@
  * @module Inferno-Router
  */ /** TypeDoc Comment */
 
-import Inferno from "inferno";
+import cloneVNode from 'inferno-clone-vnode';
 import { combineFrom, isArray, toArray } from "inferno-shared";
 import pathToRegExp from "path-to-regexp-es6";
 import {
@@ -91,7 +91,7 @@ function matchRoutes(
         }
       }
 
-      const matched = Inferno.cloneVNode(route, {
+      const matched = cloneVNode(route, {
         children,
         params: combineFrom(params, matchBase.params)
       });

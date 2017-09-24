@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "inferno": "3.9.0",
+    "inferno-clone-vnode": "3.9.0",
     "inferno-create-class": "3.9.0",
     "inferno-create-element": "3.9.0",
     "inferno-shared": "3.9.0",

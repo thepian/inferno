@@ -32,15 +32,15 @@ export function updateTextContent(dom, text: string | number) {
   }
 }
 
-export function appendChild(parentDom, dom) {
-  parentDom.appendChild(dom);
+export function appendChild(parentDOM, dom) {
+  parentDOM.appendChild(dom);
 }
 
-export function insertOrAppend(parentDom, newNode, nextNode) {
+export function insertOrAppend(parentDOM, newNode, nextNode) {
   if (isNullOrUndef(nextNode)) {
-    appendChild(parentDom, newNode);
+    appendChild(parentDOM, newNode);
   } else {
-    parentDom.insertBefore(newNode, nextNode);
+    parentDOM.insertBefore(newNode, nextNode);
   }
 }
 
@@ -52,12 +52,12 @@ export function documentCreateElement(tag, isSVG: boolean): Element {
   }
 }
 
-export function replaceChild(parentDom, newDom, lastDom) {
-  parentDom.replaceChild(newDom, lastDom);
+export function replaceChild(parentDOM: Element, newDom: Element, lastDom: Element) {
+  parentDOM.replaceChild(newDom, lastDom);
 }
 
-export function removeChild(parentDom: Element, dom: Element) {
-  parentDom.removeChild(dom);
+export function removeChild(parentDOM: Element, dom: Element) {
+  parentDOM.removeChild(dom);
 }
 
 export function isKeyed(lastChildren: any[], nextChildren: any[]): boolean {

@@ -1950,7 +1950,7 @@
 * fixes various errors in last commit to do with linting and mounting - 2 ([7f78f29](https://github.com/infernojs/inferno/commit/7f78f29))
 * fixes various issues and tests – including routing ([e962bc9](https://github.com/infernojs/inferno/commit/e962bc9))
 * fixes vdombench ([c87c653](https://github.com/infernojs/inferno/commit/c87c653))
-* for when we try to replace and parentDom is null, we can fullback to parent of last dom ([08e5ed1](https://github.com/infernojs/inferno/commit/08e5ed1))
+* for when we try to replace and parentDOM is null, we can fullback to parent of last dom ([08e5ed1](https://github.com/infernojs/inferno/commit/08e5ed1))
 * Formatting ([037bc26](https://github.com/infernojs/inferno/commit/037bc26))
 * Formatting ([8f83212](https://github.com/infernojs/inferno/commit/8f83212))
 * Formatting ([f11106b](https://github.com/infernojs/inferno/commit/f11106b))

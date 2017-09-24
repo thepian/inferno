@@ -30,7 +30,7 @@ export function processTextarea(
   }
 }
 
-export function applyValue(nextPropsOrEmpty, dom, mounting: boolean) {
+function applyValue(nextPropsOrEmpty, dom, mounting: boolean) {
   const value = nextPropsOrEmpty.value;
   const domValue = dom.value;
 

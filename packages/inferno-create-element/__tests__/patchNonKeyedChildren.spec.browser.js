@@ -361,6 +361,7 @@ describe("Non Keyed nodes", () => {
         ]),
         container
       );
+
       expect(container.textContent).toBe("xyabdcvw");
       expect(container.firstChild.childNodes.length).toBe(8);
       render(

@@ -15,10 +15,10 @@ import {
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
 import {
+  createIV,
   createVNode,
-  directClone,
   InfernoChildren,
-  InfernoInput,
+  InfernoInput, IV,
   options,
   Props,
   Root,
@@ -51,17 +51,17 @@ function getRoot(dom): Root | null {
   for (let i = 0, len = roots.length; i < len; i++) {
     const root = roots[i];
 
-    if (root.dom === dom) {
+    if (root.d === dom) {
       return root;
     }
   }
   return null;
 }
 
-function setRoot(dom: Element | SVGAElement, input: VNode): Root {
+function setRoot(dom: Element | SVGAElement, internalVNode: IV): Root {
   const root: Root = {
-    dom,
-    input
+    d: dom,
+    i: internalVNode
   };
 
   roots.push(root);
@@ -89,7 +89,7 @@ const documentBody = isBrowser ? document.body : null;
 
 export function render(
   input: InfernoInput,
-  parentDom:
+  parentDOM:
     | Element
     | SVGAElement
     | DocumentFragment
@@ -100,7 +100,7 @@ export function render(
 ): InfernoChildren {
   // Development warning
   if (process.env.NODE_ENV !== "production") {
-    if (documentBody === parentDom) {
+    if (documentBody === parentDOM) {
       throwError(
         'you cannot render() to the "document.body". Use an empty element as a container instead.'
       );
@@ -111,41 +111,41 @@ export function render(
   }
   renderInProgress = true;
   const lifecycle = [];
-  let root = getRoot(parentDom);
+  let root = getRoot(parentDOM);
+  let rootIV: IV;
 
   if (isNull(root)) {
     if (!isInvalid(input)) {
-      if ((input as VNode).dom) {
-        input = directClone(input as VNode);
-      }
-      if (!hydrateRoot(input, parentDom as any, lifecycle)) {
+      rootIV = createIV(input, 0);
+
+      if (!hydrateRoot(input, parentDOM as any, lifecycle)) {
         mount(
+          rootIV,
           input as VNode,
-          parentDom as Element,
+          parentDOM as Element,
+          null,
           lifecycle,
           EMPTY_OBJ,
-          false
+          false,
+          true
         );
       }
-      root = setRoot(parentDom as any, input as VNode);
+      root = setRoot(parentDOM as any, rootIV);
     }
   } else {
     if (isNullOrUndef(input)) {
-      unmount(root.input as VNode, parentDom as Element);
+      unmount(root.i, parentDOM as Element);
       removeRoot(root);
     } else {
-      if ((input as VNode).dom) {
-        input = directClone(input as VNode);
-      }
       patch(
-        root.input as VNode,
+        root.i,
         input as VNode,
-        parentDom as Element,
+        parentDOM as Element,
+        null,
         lifecycle,
         EMPTY_OBJ,
         false
       );
-      root.input = input as VNode;
     }
   }
 
@@ -157,7 +157,7 @@ export function render(
   flushSetStates();
   renderInProgress = false;
   if (root) {
-    const rootInput: VNode = root.input as VNode;
+    const rootInput: VNode = root.i.v as any;
 
     if (rootInput && rootInput.flags & VNodeFlags.Component) {
       return rootInput.children;
@@ -165,12 +165,12 @@ export function render(
   }
 }
 
-export function createRenderer(parentDom?) {
+export function createRenderer(parentDOM?) {
   return function renderer(lastInput, nextInput) {
-    if (!parentDom) {
-      parentDom = lastInput;
+    if (!parentDOM) {
+      parentDOM = lastInput;
     }
-    render(nextInput, parentDom);
+    render(nextInput, parentDOM);
   };
 }
 
@@ -285,21 +285,17 @@ function applyState<P, S>(
     const context = component.context;
 
     component.$PS = null;
-    let vNode = component.$V as VNode;
-    // const parentDom = vNode.dom;
-    // TODO: This is unreliable and bad code, refactor it away
-    const lastInput = component.$LI as VNode;
-    const parentDom = lastInput.dom && lastInput.dom.parentNode;
+    const iv = component.$IV as IV;
 
     updateClassComponent(
       component,
       nextState,
-      vNode,
+      iv,
       props,
-      parentDom,
+      iv.d,
       component._lifecycle as any,
       context,
-      (vNode.flags & VNodeFlags.SvgElement) > 0,
+      false,
       force,
       true
     );
@@ -307,14 +303,15 @@ function applyState<P, S>(
       return;
     }
 
-    if ((component.$LI.flags & VNodeFlags.Portal) === 0) {
-      const dom = component.$LI.dom;
-      while (!isNull((vNode = vNode.parentVNode as any))) {
-        if ((vNode.flags & VNodeFlags.Component) > 0) {
-          vNode.dom = dom;
-        }
-      }
-    }
+    // Root Handling
+    // if ((component.$LI.flags & VNodeFlags.Portal) === 0) {
+    //   const dom = component.$LI.dom;
+    //   while (!isNull((iv = iv.parentVNode as any))) {
+    //     if ((iv.f & VNodeFlags.Component) > 0) {
+    //       iv.d = dom;
+    //     }
+    //   }
+    // }
 
     callAll(component._lifecycle as any);
   } else {
@@ -338,14 +335,13 @@ export class Component<P, S> {
   public $BS: boolean = true; // BLOCK STATE
   public $PSS: boolean = false; // PENDING SET STATE
   public $PS: S | null = null; // PENDING STATE (PARTIAL or FULL)
-  public $LI: any = null; // LAST INPUT
-  public $V: VNode | null = null; // VNODE
   public $UN = false; // UNMOUNTED
-  public _lifecycle = null; // TODO: Remove this from here, lifecycle should be pure.
-  public $CX = null; // CHILDCONTEXT
+  public _lifecycle: Function[]; // TODO: Remove this from here, lifecycle should be pure.
+  public $CX; // CHILDCONTEXT
   public $UPD: boolean = true; // UPDATING
   public $Q: Function[] | null = null; // QUEUE
   public $FP: boolean = false; // FLUSH PENDING
+  public $IV: IV;
 
   constructor(props?: P, context?: any) {
     /** @type {object} */

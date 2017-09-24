@@ -39,7 +39,7 @@ export function processInput(
   }
 }
 
-export function applyValue(nextPropsOrEmpty, dom) {
+function applyValue(nextPropsOrEmpty, dom) {
   const type = nextPropsOrEmpty.type;
   const value = nextPropsOrEmpty.value;
   const checked = nextPropsOrEmpty.checked;

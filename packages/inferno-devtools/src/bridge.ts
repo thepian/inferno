@@ -255,7 +255,7 @@ function isRootVNode(vNode) {
  * Update (and create if necessary) the ReactDOMComponent|ReactCompositeComponent-like
  * instance for a given Inferno component instance or DOM Node.
  */
-function updateReactComponent(vNode, parentDom) {
+function updateReactComponent(vNode, parentDOM) {
   if (!vNode) {
     return null;
   }
@@ -269,7 +269,7 @@ function updateReactComponent(vNode, parentDom) {
       isUndefined(oldInstance)
     );
   } else {
-    newInstance = createReactDOMComponent(vNode, parentDom);
+    newInstance = createReactDOMComponent(vNode, parentDOM);
   }
 
   if (oldInstance) {
@@ -307,7 +307,7 @@ function normalizeChildren(children, dom) {
  * React DevTools requires in order to display DOM nodes in the inspector with
  * the correct type and properties.
  */
-function createReactDOMComponent(vNode, parentDom) {
+function createReactDOMComponent(vNode, parentDOM) {
   const flags = vNode.flags;
 
   if (flags & VNodeFlags.Void) {
@@ -330,7 +330,7 @@ function createReactDOMComponent(vNode, parentDom) {
     _inDevTools: false,
     _renderedChildren: !isText && normalizeChildren(children, dom),
     _stringText: isText ? (children || vNode).toString() : null,
-    node: dom || parentDom,
+    node: dom || parentDOM,
     vNode
   };
 }

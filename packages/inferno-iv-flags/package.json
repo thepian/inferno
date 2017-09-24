@@ -1,0 +1,17 @@
+{
+  "name": "inferno-iv-flags",
+  "version": "3.9.0",
+  "license": "MIT",
+  "private": true,
+  "author": "Sampo Kivistö <sampo.kivisto@live.fi>",
+  "bugs": {
+    "url": "https://github.com/infernojs/inferno/issues"
+  },
+  "homepage": "https://github.com/infernojs/inferno#readme",
+  "main": "index.js",
+  "inferno:main": "dist/index.es.js",
+  "rollup": {
+    "moduleName": "Inferno.IVFlags"
+  },
+  "typings": "dist/index.d.ts"
+}

@@ -16,200 +16,241 @@ import {
   throwError
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
-import { directClone, isVNode, options, VNode } from "../core/implementation";
+import {isVNode, options, VNode, IV, createIV, Refs, IVTypes} from "../core/implementation";
 import {
   mount,
   mountArrayChildren,
   mountComponent,
   mountElement,
   mountRef,
-  mountText,
-  mountVoid
+  mountText
 } from "./mounting";
 import { unmount } from "./unmounting";
 import {
-  appendChild,
   componentToDOMNodeMap,
   EMPTY_OBJ,
   insertOrAppend,
-  isKeyed,
   removeChild,
   replaceChild,
   setTextContent,
-  updateTextContent
+  updateTextContent,
 } from "./utils/common";
 import {
   isControlledFormElement,
   processElement
 } from "./wrappers/processElement";
 import { patchProp, removeProp } from "./props";
-import { handleComponentInput } from "./utils/components";
+import IVFlags from "../../../inferno-iv-flags/src/index";
+import {Component} from "packages/inferno/src/DOM/rendering";
 
-function replaceVNode(parentDom, dom, vNode) {
-  unmount(vNode, null);
+function replaceDOM(iv: IV, parentDOM: Element, dom: Element|null) {
+  unmount(iv, null);
 
   if (!isNull(dom)) {
-    replaceChild(parentDom, dom, vNode.dom);
+    replaceChild(parentDOM, dom, iv.d as Element);
   } else {
-    removeChild(parentDom, vNode.dom);
+    removeChild(parentDOM, iv.d as Element);
   }
+  iv.d = dom;
 }
 
-function removeAllChildren(dom: Element, children) {
-  for (let i = 0, len = children.length; i < len; i++) {
-    const child = children[i];
+function replaceOneByMany(iv: IV, nextInput: any[], parentDOM, lifecycle: Function[], context, isSVG: boolean) {
+  const oldNode = iv.d;
+  unmount(iv, null);
 
-    if (!isInvalid(child)) {
-      unmount(child, null);
-    }
+  mountArrayChildren(iv, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
+
+  if (iv.f & (IVFlags.HasKeyedChildren | IVFlags.HasNonKeydChildren)) {
+    iv.d = (iv.c as IV[])[0].d;
+  } else {
+    iv.d = null;
   }
-  dom.textContent = "";
+
+  parentDOM.removeChild(oldNode);
+}
+
+function replaceManyByOne(iv: IV, nextInput: VNode, parentDOM, lifecycle: Function[], context, isSVG: boolean) {
+  const oldNode = iv.d;
+  unmount(iv, null);
+
+  const newNode = mount(iv, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
+  iv.d = newNode;
+  parentDOM.replaceChild(oldNode, newNode);
+}
+
+export function removeAllChildren(parentIV: IV, dom: Element, children: IV[]) {
+  for (let i = 0, len = children.length; i < len; i++) {
+    unmount(children[i], dom);
+  }
+  parentIV.c = null;
+  parentIV.f = IVFlags.HasInvalidChildren;
 }
 
 function replaceWithNewNode(
-  lastNode,
-  nextNode,
+  iv: IV,
+  nextInput: VNode | string | number,
   parentDom,
-  lifecycle: Function[],
-  context: Object,
+  lifecycle,
+  context,
   isSVG: boolean
 ) {
-  unmount(lastNode, null);
-  replaceChild(
-    parentDom,
-    mount(nextNode, null, lifecycle, context, isSVG),
-    lastNode.dom
-  );
+  const oldNode = iv.d as Element;
+
+  unmount(iv, null);
+
+  const newDom = mount(iv, nextInput, parentDom, null, lifecycle, context, isSVG, false);
+
+  if (isNull(newDom)) {
+    removeChild(parentDom, oldNode as Element);
+  } else {
+    replaceChild(parentDom, newDom, oldNode);
+  }
+
+  iv.d = newDom;
 }
 
 export function patch(
-  lastVNode: VNode,
-  nextVNode: VNode,
-  parentDom: Element,
+  iv: IV,
+  nextInput: VNode | string | number,
+  parentDOM: Element,
+  nextNode: Element | null,
   lifecycle: Function[],
   context: Object,
   isSVG: boolean
 ) {
-  if (lastVNode !== nextVNode) {
-    const lastFlags = lastVNode.flags;
-    const nextFlags = nextVNode.flags;
+  const lastInput = iv.v;
 
-    if (lastFlags & VNodeFlags.Portal) {
-      if (nextFlags & VNodeFlags.Portal) {
-        patchPortal(lastVNode, nextVNode, lifecycle, context);
+  if (lastInput !== nextInput) {
+    if (isStringOrNumber(nextInput)) {
+      if (isStringOrNumber(lastInput)) {
+        updateTextContent(parentDOM, nextInput);
       } else {
-        replaceVNode(
-          parentDom,
-          mount(nextVNode, null, lifecycle, context, isSVG),
-          lastVNode
-        );
+        replaceDOM(iv, parentDOM, mountText(iv, nextInput, null, null,false));
       }
-    } else if (nextFlags & VNodeFlags.Component) {
-      const isClass = (nextFlags & VNodeFlags.ComponentClass) > 0;
-
-      if (lastFlags & VNodeFlags.Component) {
-        patchComponent(
-          lastVNode,
-          nextVNode,
-          parentDom,
-          lifecycle,
-          context,
-          isSVG,
-          isClass
-        );
-      } else {
-        replaceVNode(
-          parentDom,
-          mountComponent(nextVNode, null, lifecycle, context, isSVG, isClass),
-          lastVNode
-        );
-      }
-    } else if (nextFlags & VNodeFlags.Element) {
-      if (lastFlags & VNodeFlags.Element) {
-        patchElement(
-          lastVNode,
-          nextVNode,
-          parentDom,
-          lifecycle,
-          context,
-          isSVG
-        );
-      } else {
-        replaceVNode(
-          parentDom,
-          mountElement(nextVNode, null, lifecycle, context, isSVG),
-          lastVNode
-        );
-      }
-    } else if (nextFlags & VNodeFlags.Text) {
-      if (lastFlags & VNodeFlags.Text) {
-        patchText(lastVNode, nextVNode);
-      } else {
-        replaceVNode(parentDom, mountText(nextVNode, null), lastVNode);
-      }
-    } else if (nextFlags & VNodeFlags.Void) {
-      if (lastFlags & VNodeFlags.Void) {
-        patchVoid(lastVNode, nextVNode);
-      } else {
-        replaceVNode(parentDom, mountVoid(nextVNode, null), lastVNode);
-      }
-    } else if (nextFlags & VNodeFlags.Portal) {
-      replaceVNode(
-        parentDom,
-        mount(nextVNode, null, lifecycle, context, isSVG),
-        lastVNode
+    } else if (isStringOrNumber(lastInput)) {
+      replaceDOM(
+        iv,
+        parentDOM,
+        mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
       );
+    } else if (isVNode(lastInput)) {
+      if (isVNode(nextInput)) {
+        const lastFlags = lastInput.flags;
+        const nextFlags = nextInput.flags;
+
+        if (lastFlags & VNodeFlags.Portal) {
+          if (nextFlags & VNodeFlags.Portal) {
+            patchPortal(iv, lastInput, nextInput, lifecycle, context);
+          } else {
+            replaceDOM(
+              iv,
+              parentDOM,
+              mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+            );
+          }
+        } else if (nextFlags & VNodeFlags.Component) {
+          const isClass = (nextFlags & VNodeFlags.ComponentClass) > 0;
+
+          if (lastFlags & VNodeFlags.Component) {
+            patchComponent(
+              iv,
+              nextInput,
+              parentDOM,
+              lifecycle,
+              context,
+              isSVG,
+              isClass
+            );
+          } else {
+            replaceDOM(
+              iv,
+              parentDOM,
+              mountComponent(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, isClass, false)
+            );
+          }
+        } else if (nextFlags & VNodeFlags.Element) {
+          if (lastFlags & VNodeFlags.Element) {
+            patchElement(
+              iv,
+              lastInput,
+              nextInput,
+              parentDOM,
+              nextNode,
+              lifecycle,
+              context,
+              isSVG
+            );
+          } else {
+            replaceDOM(
+              iv,
+              parentDOM,
+              mountElement(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+            );
+          }
+        } else if (nextFlags & VNodeFlags.Portal) {
+          replaceDOM(
+            iv,
+            parentDOM,
+            mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+          );
+        } else {
+          // Error case: mount new one replacing old one
+          replaceDOM(
+            iv,
+            parentDOM,
+            mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+          );
+        }
+      } else {
+        replaceOneByMany(iv, nextInput, parentDOM, lifecycle, context, isSVG);
+      }
+    } else if (isVNode(nextInput)) {
+      replaceManyByOne(iv, nextInput, parentDOM, lifecycle, context, isSVG);
     } else {
-      // Error case: mount new one replacing old one
-      replaceVNode(
-        parentDom,
-        mount(nextVNode, null, lifecycle, context, isSVG),
-        lastVNode
-      );
+      // Many to Many
+      patchChildren(iv, nextInput, parentDOM, nextNode, lifecycle, context, false);
     }
+  }
+
+  iv.v = nextInput;
+
+  if (iv.t === IVTypes.IsVirtualArray) {
+    iv.d = isNull(iv.c) ? null : iv.c[0].d;
   }
 }
 
-function patchPortal(lastVNode: VNode, nextVNode: VNode, lifecycle, context) {
+function patchPortal(iv: IV, lastVNode: VNode, nextVNode: VNode, lifecycle, context) {
   const lastContainer = lastVNode.type as Element;
   const nextContainer = nextVNode.type as Element;
   const nextChildren = nextVNode.children as VNode;
 
-  patchChildren(
-    0,
-    0,
-    lastVNode.children as VNode,
-    nextChildren,
-    lastContainer as Element,
-    lifecycle,
-    context,
-    false
-  );
-
-  nextVNode.dom = lastVNode.dom;
+  // TODO:
+  // patchChildren(
+  //   iv,
+  //   0,
+  //   0,
+  //   lastVNode.children as VNode,
+  //   nextChildren,
+  //   lastContainer as Element,
+  //   lifecycle,
+  //   context,
+  //   false
+  // );
 
   if (lastContainer !== nextContainer && !isInvalid(nextChildren)) {
-    const node = nextChildren.dom as Element;
+    const node = iv.d as Element;
 
     lastContainer.removeChild(node);
     nextContainer.appendChild(node);
   }
 }
 
-function unmountChildren(children, dom: Element) {
-  if (isVNode(children)) {
-    unmount(children, dom);
-  } else if (isArray(children)) {
-    removeAllChildren(dom, children);
-  } else {
-    dom.textContent = "";
-  }
-}
-
 export function patchElement(
+  iv: IV,
   lastVNode: VNode,
   nextVNode: VNode,
-  parentDom: Element | null,
+  parentDOM: Element | null,
+  nextNode: Element | null,
   lifecycle: Function[],
   context: Object,
   isSVG: boolean
@@ -219,36 +260,33 @@ export function patchElement(
 
   if (lastTag !== nextTag) {
     replaceWithNewNode(
-      lastVNode,
+      iv,
       nextVNode,
-      parentDom,
+      parentDOM,
       lifecycle,
       context,
       isSVG
     );
   } else {
-    const dom = lastVNode.dom as Element;
+    const dom = iv.d as Element;
     const lastProps = lastVNode.props;
     const nextProps = nextVNode.props;
     const lastChildren = lastVNode.children;
     const nextChildren = nextVNode.children;
-    const lastFlags = lastVNode.flags;
     const nextFlags = nextVNode.flags;
     const nextRef = nextVNode.ref;
     const lastClassName = lastVNode.className;
     const nextClassName = nextVNode.className;
 
-    nextVNode.dom = dom;
     isSVG = isSVG || (nextFlags & VNodeFlags.SvgElement) > 0;
     if (lastChildren !== nextChildren) {
-      const childrenIsSVG =
-        isSVG === true && nextVNode.type !== "foreignObject";
+      const childrenIsSVG = isSVG === true && nextVNode.type !== "foreignObject";
+
       patchChildren(
-        lastFlags,
-        nextFlags,
-        lastChildren,
+        iv,
         nextChildren,
         dom,
+        null,
         lifecycle,
         context,
         childrenIsSVG
@@ -319,112 +357,177 @@ export function patchElement(
 }
 
 function patchChildren(
-  lastFlags: VNodeFlags,
-  nextFlags: VNodeFlags,
-  lastChildren,
-  nextChildren,
-  dom: Element,
+  parentIV: IV,
+  nextInput,
+  parentDOM: Element,
+  nextNode: Element | null,
   lifecycle: Function[],
-  context: Object,
-  isSVG: boolean
+  context,
+  childrenIsSVG: boolean
 ) {
-  let patchArray = false;
-  let patchKeyed = false;
+  const childFlags = parentIV.f;
+  let childIVs = parentIV.c as any;
 
-  if (nextFlags & VNodeFlags.HasNonKeyedChildren) {
-    patchArray = true;
-  } else if (
-    (lastFlags & VNodeFlags.HasKeyedChildren) > 0 &&
-    (nextFlags & VNodeFlags.HasKeyedChildren) > 0
-  ) {
-    patchKeyed = true;
-    patchArray = true;
-  } else if (isInvalid(nextChildren)) {
-    unmountChildren(lastChildren, dom);
-  } else if (isInvalid(lastChildren)) {
-    if (isStringOrNumber(nextChildren)) {
-      setTextContent(dom, nextChildren);
+  if ((childFlags & IVFlags.HasTextChildren) > 0) {
+    if (isInvalid(nextInput)) {
+      removeChild(parentDOM, parentDOM.firstChild as Element);
+      parentIV.f = IVFlags.HasInvalidChildren;
+    } else if (isStringOrNumber(nextInput)) {
+      updateTextContent(parentDOM, nextInput);
+    } else if (isVNode(nextInput)) {
+      childIVs = createIV(nextInput, 0) as IV;
+      const newDOM = mount(
+        childIVs,
+        nextInput,
+        parentDOM,
+        nextNode,
+        lifecycle,
+        context,
+        childrenIsSVG,
+        false
+      );
+      replaceChild(parentDOM, newDOM, parentDOM.firstChild as Element);
+      childIVs.d = newDOM;
+      parentIV.c = childIVs;
+      parentIV.f = IVFlags.HasBasicChildren;
     } else {
-      if (isArray(nextChildren)) {
-        mountArrayChildren(nextChildren, dom, lifecycle, context, isSVG);
+      parentDOM.removeChild(parentDOM.firstChild as Element);
+      mountArrayChildren(
+        parentIV,
+        nextInput,
+        parentDOM,
+        nextNode,
+        lifecycle,
+        context,
+        childrenIsSVG,
+        false
+      );
+    }
+  } else if ((childFlags & IVFlags.HasInvalidChildren) > 0) {
+    if (!isInvalid(nextInput)) {
+      if (isStringOrNumber(nextInput)) {
+        setTextContent(parentDOM, nextInput);
+        parentIV.f = IVFlags.HasTextChildren;
+      } else if (isVNode(nextInput)) {
+        childIVs = createIV(nextInput, 0) as IV;
+        mount(childIVs, nextInput, parentDOM, nextNode, lifecycle, context, childrenIsSVG, true);
+        parentIV.c = childIVs;
+        parentIV.f = IVFlags.HasBasicChildren;
       } else {
-        mount(nextChildren, dom, lifecycle, context, isSVG);
+        mountArrayChildren(
+          parentIV,
+          nextInput,
+          parentDOM,
+          nextNode,
+          lifecycle,
+          context,
+          childrenIsSVG,
+          false
+        );
       }
     }
-  } else if (isStringOrNumber(nextChildren)) {
-    if (isStringOrNumber(lastChildren)) {
-      updateTextContent(dom, nextChildren);
+  } else if ((childFlags & IVFlags.HasBasicChildren) > 0) {
+    if (isInvalid(nextInput)) {
+      unmount(childIVs, parentDOM);
+      parentIV.c = null;
+      parentIV.f = IVFlags.HasInvalidChildren;
+    } else if (isVNode(nextInput)) {
+      patch(childIVs, nextInput, parentDOM, nextNode, lifecycle, context, childrenIsSVG);
+    } else if (isStringOrNumber(nextInput)) {
+      replaceWithNewNode(
+        childIVs,
+        nextInput,
+        parentDOM,
+        lifecycle,
+        context,
+        childrenIsSVG
+      );
     } else {
-      unmountChildren(lastChildren, dom);
-      setTextContent(dom, nextChildren);
+      unmount(childIVs, parentDOM);
+      mountArrayChildren(
+        parentIV,
+        nextInput,
+        parentDOM,
+        nextNode,
+        lifecycle,
+        context,
+        childrenIsSVG,
+        false
+      );
     }
-  } else if (isArray(nextChildren)) {
-    if (isArray(lastChildren)) {
-      patchArray = true;
-      if (isKeyed(lastChildren, nextChildren)) {
-        patchKeyed = true;
-      }
-    } else {
-      unmountChildren(lastChildren, dom);
-      mountArrayChildren(nextChildren, dom, lifecycle, context, isSVG);
-    }
-  } else if (isArray(lastChildren)) {
-    removeAllChildren(dom, lastChildren);
-    mount(nextChildren, dom, lifecycle, context, isSVG);
-  } else if (isVNode(nextChildren)) {
-    if (isVNode(lastChildren)) {
-      patch(lastChildren, nextChildren, dom, lifecycle, context, isSVG);
-    } else {
-      unmountChildren(lastChildren, dom);
-      mount(nextChildren, dom, lifecycle, context, isSVG);
-    }
-  }
-  if (patchArray) {
-    const lastLength = lastChildren.length;
-    const nextLength = nextChildren.length;
+  } else {
+    // Multiple children
+    if (isInvalid(nextInput)) {
+      removeAllChildren(parentIV, parentDOM, childIVs);
+    } else if (isArray(nextInput)) {
+      const lastLength = childIVs === null ? 0 : childIVs.length;
+      const nextLength = (nextInput as VNode[]).length;
 
-    // Fast path's for both algorithms
-    if (lastLength === 0) {
-      if (nextLength > 0) {
-        mountArrayChildren(nextChildren, dom, lifecycle, context, isSVG);
+      if (lastLength === 0) {
+        if (nextLength > 0) {
+          mountArrayChildren(
+            parentIV,
+            nextInput,
+            parentDOM,
+            nextNode,
+            lifecycle,
+            context,
+            childrenIsSVG,
+            false
+          );
+        }
+      } else if (nextLength === 0) {
+        removeAllChildren(parentIV, parentDOM, childIVs);
+      } else if (
+        (childFlags & IVFlags.HasKeyedChildren) > 0 &&
+        (nextInput.length > 0 &&
+          !isNullOrUndef(nextInput[0]) &&
+          !isNullOrUndef(nextInput[0].key))
+      ) {
+        patchKeyedChildren(
+          parentIV,
+          childIVs as IV[],
+          nextInput as VNode[],
+          parentDOM,
+          nextNode,
+          lifecycle,
+          context,
+          childrenIsSVG,
+          lastLength,
+          nextLength
+        );
+      } else {
+        patchNonKeyedChildren(
+          childIVs as IV[],
+          nextInput as VNode[],
+          parentDOM,
+          nextNode,
+          lifecycle,
+          context,
+          childrenIsSVG,
+          lastLength,
+          nextLength
+        );
       }
-    } else if (nextLength === 0) {
-      removeAllChildren(dom, lastChildren);
-    } else if (patchKeyed) {
-      patchKeyedChildren(
-        lastChildren,
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        isSVG,
-        lastLength,
-        nextLength
-      );
+    } else if (isStringOrNumber(nextInput)) {
+      removeAllChildren(parentIV, parentDOM, childIVs);
+      setTextContent(parentDOM, nextInput);
+      parentIV.f = IVFlags.HasTextChildren;
     } else {
-      patchNonKeyedChildren(
-        lastChildren,
-        nextChildren,
-        dom,
-        lifecycle,
-        context,
-        isSVG,
-        lastLength,
-        nextLength
-      );
+      // vNode
+      replaceManyByOne(parentIV.c as IV, nextInput, parentDOM, lifecycle, context, childrenIsSVG);
     }
   }
 }
 
 export function updateClassComponent(
-  instance,
+  instance: Component<any, any>,
   nextState,
-  nextVNode: VNode,
+  iv: IV,
   nextProps,
-  parentDom,
+  parentDOM,
   lifecycle: Function[],
   context,
-  isSVG: boolean,
   force: boolean,
   fromSetState: boolean
 ) {
@@ -432,8 +535,6 @@ export function updateClassComponent(
   // When component has componentDidUpdate hook, we need to clone lastState or will be modified by reference during update
   const lastState = instance.state;
   const lastProps = instance.props;
-  nextVNode.children = instance;
-  const lastInput = instance.$LI;
   let renderOutput;
 
   if (instance.$UN) {
@@ -507,19 +608,33 @@ export function updateClassComponent(
     instance.$CX = childContext;
 
     if (didUpdate) {
-      const nextInput = (instance.$LI = handleComponentInput(
+      patchChildren(
+        iv,
         renderOutput,
-        nextVNode
-      ));
-      patch(lastInput, nextInput, parentDom, lifecycle, childContext, isSVG);
+        parentDOM,
+        null,
+        lifecycle,
+        context,
+        false
+      );
+      const dom = iv.c === null ? null : (iv.c as IV).d;
+
+      if (fromSetState) {
+        let parent = iv.b;
+
+        while (!isNull(parent)) {
+          parent.d = dom;
+          parent = parent.b;
+        }
+      }
       if (hasComponentDidUpdate) {
-        instance.componentDidUpdate(lastProps, lastState);
+        (instance.componentDidUpdate as Function)(lastProps, lastState);
       }
       if (isFunction(options.afterUpdate)) {
-        options.afterUpdate(nextVNode);
+        options.afterUpdate(iv.v);
       }
       if (options.findDOMNodeEnabled) {
-        componentToDOMNodeMap.set(instance, nextInput.dom);
+        componentToDOMNodeMap.set(instance, iv.d);
       }
     }
   } else {
@@ -527,18 +642,18 @@ export function updateClassComponent(
     instance.state = nextState;
     instance.context = context;
   }
-  nextVNode.dom = instance.$LI.dom;
 }
 
 export function patchComponent(
-  lastVNode,
-  nextVNode,
-  parentDom,
+  iv: IV,
+  nextVNode: VNode,
+  parentDOM: Element,
   lifecycle: Function[],
   context,
   isSVG: boolean,
   isClass: boolean
 ): void {
+  const lastVNode = iv.v as VNode;
   const lastType = lastVNode.type;
   const nextType = nextVNode.type;
   const lastKey = lastVNode.key;
@@ -546,9 +661,9 @@ export function patchComponent(
 
   if (lastType !== nextType || lastKey !== nextKey) {
     replaceWithNewNode(
-      lastVNode,
+      iv,
       nextVNode,
-      parentDom,
+      parentDOM,
       lifecycle,
       context,
       isSVG
@@ -557,158 +672,156 @@ export function patchComponent(
     const nextProps = nextVNode.props || EMPTY_OBJ;
 
     if (isClass) {
-      const instance = lastVNode.children;
+      const instance = iv.i as Component<any, any>;
       instance.$UPD = true;
 
       updateClassComponent(
         instance,
         instance.state,
-        nextVNode,
+        iv,
         nextProps,
-        parentDom,
+        parentDOM,
         lifecycle,
         context,
-        isSVG,
         false,
         false
       );
-      instance.$V = nextVNode;
+      instance.$IV = iv;
       instance.$UPD = false;
     } else {
       let shouldUpdate = true;
       const lastProps = lastVNode.props;
-      const nextHooks = nextVNode.ref;
+      const nextHooks = nextVNode.ref as Refs;
       const nextHooksDefined = !isNullOrUndef(nextHooks);
-      const lastInput = lastVNode.children;
-      let nextInput = lastInput;
 
-      nextVNode.dom = lastVNode.dom;
-      nextVNode.children = lastInput;
-      if (lastKey !== nextKey) {
-        shouldUpdate = true;
-      } else {
-        if (nextHooksDefined && isFunction(nextHooks.onComponentShouldUpdate)) {
-          shouldUpdate = nextHooks.onComponentShouldUpdate(
-            lastProps,
-            nextProps
-          );
-        }
+      // TODO: Optimize lifecycle events below for size
+      if (nextHooksDefined && isFunction(nextHooks.onComponentShouldUpdate)) {
+        shouldUpdate = nextHooks.onComponentShouldUpdate(
+          lastProps,
+          nextProps
+        );
       }
       if (shouldUpdate !== false) {
         if (nextHooksDefined && isFunction(nextHooks.onComponentWillUpdate)) {
           nextHooks.onComponentWillUpdate(lastProps, nextProps);
         }
-        nextInput = nextType(nextProps, context);
+        const nextInput = nextType(nextProps, context);
 
         if (nextInput !== NO_OP) {
-          nextInput = handleComponentInput(nextInput, nextVNode);
-          patch(lastInput, nextInput, parentDom, lifecycle, context, isSVG);
-          nextVNode.children = nextInput;
-          nextVNode.dom = nextInput.dom;
+          patchChildren(
+            iv,
+            nextInput,
+            parentDOM,
+            null,
+            lifecycle,
+            context,
+            false
+          );
           if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
             nextHooks.onComponentDidUpdate(lastProps, nextProps);
           }
         }
-      } else if ((lastInput.flags & VNodeFlags.Component) > 0) {
-        lastInput.parentVNode = nextVNode;
       }
     }
   }
-}
-
-export function patchText(lastVNode: VNode, nextVNode: VNode) {
-  const nextText = nextVNode.children as string;
-  const dom = lastVNode.dom as Element;
-
-  nextVNode.dom = dom;
-
-  if (lastVNode.children !== nextText) {
-    dom.nodeValue = nextText;
-  }
-}
-
-export function patchVoid(lastVNode: VNode, nextVNode: VNode) {
-  nextVNode.dom = lastVNode.dom;
 }
 
 export function patchNonKeyedChildren(
-  lastChildren,
-  nextChildren,
-  dom,
+  childIVs: IV[],
+  nextChildren: Array<VNode | null | string | false | undefined | true | number>,
+  parentDOM: Element,
+  outerRef: Element | null,
   lifecycle: Function[],
-  context: Object,
+  context,
   isSVG: boolean,
-  lastChildrenLength: number,
+  lastIVsLength: number,
   nextChildrenLength: number
 ) {
-  const commonLength =
-    lastChildrenLength > nextChildrenLength
-      ? nextChildrenLength
-      : lastChildrenLength;
-  let i = 0;
+  let nextChild;
+  let iteratedIV = childIVs[0];
+  let pos = iteratedIV.p;
+  let nextNode = 1 < lastIVsLength ? childIVs[1].d : outerRef;
+  let newChildIVs;
+  let updatedIVs = 0;
+  let addedIVs = 0;
 
-  for (; i < commonLength; i++) {
-    let nextChild = nextChildren[i];
+  for (let j = 0; j < nextChildrenLength; j++) {
+    nextChild = nextChildren[j];
 
-    if (nextChild.dom) {
-      nextChild = nextChildren[i] = directClone(nextChild);
-    }
-    patch(lastChildren[i], nextChild, dom, lifecycle, context, isSVG);
-  }
-  if (lastChildrenLength < nextChildrenLength) {
-    for (i = commonLength; i < nextChildrenLength; i++) {
-      let nextChild = nextChildren[i];
-
-      if (nextChild.dom) {
-        nextChild = nextChildren[i] = directClone(nextChild);
+    if (pos === j) {
+      if (isInvalid(nextChild)) {
+        if (iteratedIV.f !== IVFlags.HasInvalidChildren) {
+          unmount(iteratedIV, parentDOM);
+        }
+        lastIVsLength--;
+        childIVs.splice(addedIVs + updatedIVs, 1);
+      } else {
+        patch(iteratedIV, nextChild, parentDOM, nextNode, lifecycle, context, isSVG);
+        updatedIVs++;
       }
-      appendChild(dom, mount(nextChild, null, lifecycle, context, isSVG));
+      if (updatedIVs < lastIVsLength) {
+        iteratedIV = childIVs[addedIVs + updatedIVs];
+        pos = iteratedIV.p;
+        nextNode = pos + 1 < lastIVsLength ? childIVs[pos + 1].d : outerRef
+      } else {
+        nextNode = outerRef;
+      }
+    } else if (!isInvalid(nextChild)) {
+      newChildIVs = createIV(nextChild, j);
+
+      mount(newChildIVs, nextChild, parentDOM, j < pos ? iteratedIV.d : outerRef, lifecycle, context, isSVG, true);
+
+      childIVs.splice(j, 0, newChildIVs);
+      addedIVs++;
     }
-  } else if (lastChildrenLength > nextChildrenLength) {
-    for (i = commonLength; i < lastChildrenLength; i++) {
-      unmount(lastChildren[i], dom);
-    }
+  }
+  if (updatedIVs < lastIVsLength) {
+    const firstIndex = updatedIVs;
+
+    do {
+      unmount(childIVs[addedIVs + updatedIVs++], parentDOM);
+    } while (updatedIVs < lastIVsLength);
+
+    childIVs.splice(firstIndex, lastIVsLength - firstIndex); // Remove dead IVs
   }
 }
 
 export function patchKeyedChildren(
-  a: VNode[],
+  parentIV: IV,
+  a: IV[],
   b: VNode[],
-  dom,
-  lifecycle: Function[],
-  context,
+  parentDOM: Element,
+  outerRef: Element | null,
+  lifecycle,
+  context: Function[],
   isSVG: boolean,
   aLength: number,
   bLength: number
 ) {
   let aEnd = aLength - 1;
   let bEnd = bLength - 1;
-  let aStart = 0;
-  let bStart = 0;
-  let i;
-  let j;
-  let aNode;
-  let bNode;
-  let nextNode;
-  let nextPos;
-  let node;
+  let aStart: number = 0;
+  let bStart: number = 0;
+  let i: number = -1;
+  let j: number;
+  let aNode: IV;
+  let bNode: VNode;
+  let nextNode: Element | null = outerRef;
+  let nextPos: number = 0;
+  let node: VNode;
   let aStartNode = a[aStart];
   let bStartNode = b[bStart];
   let aEndNode = a[aEnd];
   let bEndNode = b[bEnd];
+  const newChildIVs = new Array(bLength);
 
-  if (bStartNode.dom) {
-    b[bStart] = bStartNode = directClone(bStartNode);
-  }
-  if (bEndNode.dom) {
-    b[bEnd] = bEndNode = directClone(bEndNode);
-  }
   // Step 1
   // tslint:disable-next-line
   outer: {
     // Sync nodes with the same key at the beginning.
-    while (aStartNode.key === bStartNode.key) {
-      patch(aStartNode, bStartNode, dom, lifecycle, context, isSVG);
+    while (aStartNode.k === bStartNode.key) {
+      patch(aStartNode, bStartNode, parentDOM, outerRef, lifecycle, context, isSVG);
+      newChildIVs[bStart] = aStartNode;
       aStart++;
       bStart++;
       if (aStart > aEnd || bStart > bEnd) {
@@ -716,196 +829,131 @@ export function patchKeyedChildren(
       }
       aStartNode = a[aStart];
       bStartNode = b[bStart];
-      if (bStartNode.dom) {
-        b[bStart] = bStartNode = directClone(bStartNode);
-      }
     }
 
     // Sync nodes with the same key at the end.
-    while (aEndNode.key === bEndNode.key) {
-      patch(aEndNode, bEndNode, dom, lifecycle, context, isSVG);
+    while (aEndNode.k === bEndNode.key) {
+      patch(aEndNode, bEndNode, parentDOM, outerRef, lifecycle, context, isSVG);
+      newChildIVs[bEnd] = aEndNode;
       aEnd--;
       bEnd--;
       if (aStart > aEnd || bStart > bEnd) {
         break outer;
       }
+      nextNode = aEndNode.d;
+      nextPos = aEnd;
       aEndNode = a[aEnd];
       bEndNode = b[bEnd];
-      if (bEndNode.dom) {
-        b[bEnd] = bEndNode = directClone(bEndNode);
-      }
     }
   }
 
   if (aStart > aEnd) {
     if (bStart <= bEnd) {
       nextPos = bEnd + 1;
-      nextNode = nextPos < bLength ? b[nextPos].dom : null;
+      nextNode = nextPos < bLength ? newChildIVs[nextPos].d : outerRef;
+
       while (bStart <= bEnd) {
         node = b[bStart];
-        if (node.dom) {
-          b[bStart] = node = directClone(node);
-        }
+        const childIV = createIV(node, bStart);
+
+        mount(childIV, node, parentDOM, nextNode, lifecycle, context, isSVG, true);
+
+        newChildIVs[bStart] = childIV;
         bStart++;
-        insertOrAppend(
-          dom,
-          mount(node, null, lifecycle, context, isSVG),
-          nextNode
-        );
       }
     }
   } else if (bStart > bEnd) {
-    while (aStart <= aEnd) {
-      unmount(a[aStart++], dom);
+    for (i = aStart; i <= aEnd; i++) {
+      unmount(a[i], parentDOM);
     }
   } else {
-    const aLeft = aEnd - aStart + 1;
-    const bLeft = bEnd - bStart + 1;
-    const sources = new Array(bLeft);
+    const sources = new Array(bEnd - bStart + 1).fill(-1);
+    const keyIndex = new Map();
 
     // Mark all nodes as inserted.
-    for (i = 0; i < bLeft; i++) {
-      sources[i] = -1;
+    for (i = bStart; i <= bEnd; i++) {
+      keyIndex.set(b[i].key, i);
     }
+
     let moved = false;
     let pos = 0;
-    let patched = 0;
+    let bUpdated = 0;
+    nextPos = 0;
+    // Try to patch same keys and remove old
+    for (i = aStart; i <= aEnd; i++) {
+      aNode = a[i];
+      j = keyIndex.get(aNode.k);
 
-    // When sizes are small, just loop them through
-    if (bLeft <= 4 || aLeft * bLeft <= 16) {
-      for (i = aStart; i <= aEnd; i++) {
-        aNode = a[i];
-        if (patched < bLeft) {
-          for (j = bStart; j <= bEnd; j++) {
-            bNode = b[j];
-            if (aNode.key === bNode.key) {
-              sources[j - bStart] = i;
-
-              if (pos > j) {
-                moved = true;
-              } else {
-                pos = j;
-              }
-              if (bNode.dom) {
-                b[j] = bNode = directClone(bNode);
-              }
-              patch(aNode, bNode, dom, lifecycle, context, isSVG);
-              patched++;
-              a[i] = null as any;
-              break;
-            }
-          }
+      if (isUndefined(j)) {
+        unmount(aNode, parentDOM);
+      } else {
+        bNode = b[j];
+        sources[j - bStart] = i;
+        if (pos > j) {
+          moved = true;
+        } else {
+          pos = j;
         }
-      }
-    } else {
-      const keyIndex = new Map();
-
-      // Map keys by their index in array
-      for (i = bStart; i <= bEnd; i++) {
-        keyIndex.set(b[i].key, i);
-      }
-
-      // Try to patch same keys
-      for (i = aStart; i <= aEnd; i++) {
-        aNode = a[i];
-
-        if (patched < bLeft) {
-          j = keyIndex.get(aNode.key);
-
-          if (!isUndefined(j)) {
-            bNode = b[j];
-            sources[j - bStart] = i;
-            if (pos > j) {
-              moved = true;
-            } else {
-              pos = j;
-            }
-            if (bNode.dom) {
-              b[j] = bNode = directClone(bNode);
-            }
-            patch(aNode, bNode, dom, lifecycle, context, isSVG);
-            patched++;
-            a[i] = null as any;
-          }
-        }
+        patch(aNode, bNode, parentDOM, outerRef, lifecycle, context, isSVG);
+        newChildIVs[j] = aNode;
+        bUpdated++;
       }
     }
-    // fast-path: if nothing patched remove all old and add all new
-    if (aLeft === aLength && patched === 0) {
-      removeAllChildren(dom, a);
-      while (bStart < bLeft) {
-        node = b[bStart];
-        if (node.dom) {
-          b[bStart] = node = directClone(node);
-        }
-        bStart++;
-        insertOrAppend(dom, mount(node, null, lifecycle, context, isSVG), null);
-      }
-    } else {
-      i = aLeft - patched;
-      while (i > 0) {
-        aNode = a[aStart++];
-        if (!isNull(aNode)) {
-          unmount(aNode, dom);
-          i--;
-        }
-      }
-      if (moved) {
-        const seq = lis_algorithm(sources);
-        j = seq.length - 1;
-        for (i = bLeft - 1; i >= 0; i--) {
-          if (sources[i] === -1) {
+    if (moved) {
+      const seq = LIS(sources);
+
+      j = seq.length - 1;
+      for (i = bEnd - bStart; i >= 0; i--) {
+        if (sources[i] === -1) {
+          pos = i + bStart;
+          node = b[pos];
+          nextPos = pos + 1;
+          nextNode = nextPos < bLength ? newChildIVs[nextPos].d : outerRef;
+
+          const childIV = createIV(node, bStart);
+
+          mount(childIV, node, parentDOM, nextNode, lifecycle, context, isSVG, true);
+
+          newChildIVs[pos] = childIV;
+        } else {
+          if (j < 0 || i !== seq[j]) {
             pos = i + bStart;
-            node = b[pos];
-            if (node.dom) {
-              b[pos] = node = directClone(node);
-            }
             nextPos = pos + 1;
+            nextNode = nextPos < bLength ? newChildIVs[nextPos].d : outerRef;
+
             insertOrAppend(
-              dom,
-              mount(node, null, lifecycle, context, isSVG),
-              nextPos < bLength ? b[nextPos].dom : null
+              parentDOM,
+              newChildIVs[pos].d as Element,
+              nextNode
             );
           } else {
-            if (j < 0 || i !== seq[j]) {
-              pos = i + bStart;
-              node = b[pos];
-              nextPos = pos + 1;
-              insertOrAppend(
-                dom,
-                node.dom,
-                nextPos < bLength ? b[nextPos].dom : null
-              );
-            } else {
-              j--;
-            }
+            j--;
           }
         }
-      } else if (patched !== bLeft) {
-        // when patched count doesn't match b length we need to insert those new ones
-        // loop backwards so we can use insertBefore
-        for (i = bLeft - 1; i >= 0; i--) {
-          if (sources[i] === -1) {
-            pos = i + bStart;
-            node = b[pos];
-            if (node.dom) {
-              b[pos] = node = directClone(node);
-            }
-            nextPos = pos + 1;
-            insertOrAppend(
-              dom,
-              mount(node, null, lifecycle, context, isSVG),
-              nextPos < bLength ? b[nextPos].dom : null
-            );
-          }
+      }
+    } else {
+      for (i = bEnd; i >= bStart && bUpdated !== bLength; i--) {
+        bNode = b[i];
+
+        if (isUndefined(newChildIVs[i])) {
+          const iv = createIV(bNode, i);
+
+          mount(iv, bNode, parentDOM, nextNode, lifecycle, context, isSVG, true);
+
+          newChildIVs[i] = iv;
+          bUpdated++;
         }
+
+        nextNode = newChildIVs[i].d;
       }
     }
   }
+  parentIV.c = newChildIVs;
 }
 
-// // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
-function lis_algorithm(arr: number[]): number[] {
+// Longest Increasing Subsequence algorithm
+// https://en.wikipedia.org/wiki/Longest_increasing_subsequence
+function LIS(arr: number[]): number[] {
   const p = arr.slice(0);
   const result: number[] = [0];
   let i;
