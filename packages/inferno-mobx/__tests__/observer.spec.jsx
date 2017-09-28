@@ -32,6 +32,7 @@ const TodoList = observer(
       const todos = store.todos;
       return (
         <div>
+          <hi>{todos.length}</hi>
           {todos.map((todo, idx) => <TodoItem key={idx} todo={todo} />)}
         </div>
       );
@@ -57,44 +58,37 @@ describe("Mobx Observer", () => {
     document.body.removeChild(container);
   });
 
-  it.only("nestedRendering", done => {
+  it("nestedRendering", done => {
     render(<App />, container);
+    expect(todoListRenderings).toEqual(1); //, 'should have rendered list once');
+    expect(todoListWillReactCount).toEqual(0); //, 'should not have reacted yet')
+    expect(container.querySelectorAll("li").length).toEqual(1);
+    expect(container.querySelector("li").textContent).toEqual("|a");
 
-    // expect(todoListRenderings).toEqual(1); //, 'should have rendered list once');
-    // expect(todoListWillReactCount).toEqual(0); //, 'should not have reacted yet')
-    // expect(container.querySelectorAll("li").length).toEqual(1);
-    // expect(container.querySelector("li").textContent).toEqual("|a");
-    //
-    // expect(todoItemRenderings).toEqual(1); // 'item1 should render once'
-    //
-    // expect(getDNode(store, "todos").observers.length).toBe(1);
-    // expect(getDNode(store.todos[0], "title").observers.length).toBe(1);
+    expect(todoItemRenderings).toEqual(1); // 'item1 should render once'
 
-    console.warn('Before:', store.todos[0].title, container.innerHTML)
-    store.todos[0].title += "z";
-    console.warn('After:', store.todos[0].title, container.innerHTML)
+    expect(getDNode(store, "todos").observers.length).toBe(1);
+    expect(getDNode(store.todos[0], "title").observers.length).toBe(1);
+
+    store.todos[0].title += "a";
 
     setTimeout(() => {
-      // expect(todoListRenderings).toEqual(1); //, 'should have rendered list once');
-      // expect(todoListWillReactCount).toEqual(0); //, 'should not have reacted')
-      // expect(todoItemRenderings).toEqual(2); //, 'item1 should have rendered twice');
-      // expect(getDNode(store, "todos").observers.length).toBe(1); //, 'observers count shouldn\'t change');
-      // expect(getDNode(store.todos[0], "title").observers.length).toBe(1); //, 'title observers should not have increased');
+      expect(todoListRenderings).toEqual(1); //, 'should have rendered list once');
+      expect(todoListWillReactCount).toEqual(0); //, 'should not have reacted')
+      expect(todoItemRenderings).toEqual(2); //, 'item1 should have rendered twice');
+      expect(getDNode(store, "todos").observers.length).toBe(1); //, 'observers count shouldn\'t change');
+      expect(getDNode(store.todos[0], "title").observers.length).toBe(1); //, 'title observers should not have increased');
 
-      // store.todos.push({
-      //   title: "b",
-      //   completed: true
-      // });
+      store.todos.push({
+        title: "b",
+        completed: true
+      });
 
       setTimeout(() => {
-        //expect(container.querySelectorAll("li").length).toBe(2); //, 'list should two items in in the list');
-
-        //console.warn(container.innerHTML)
-        //console.warn(Array.from(container.querySelectorAll("li")).map(e => e.textContent))
-        // expect(
-        //   Array.from(container.querySelectorAll("li")).map(e => e.textContent)
-        // ).toEqual(["|aa", "|b"]);
-        done();
+        expect(container.querySelectorAll("li").length).toBe(2); //, 'list should two items in in the list');
+        expect(
+          Array.from(container.querySelectorAll("li")).map(e => e.textContent)
+        ).toEqual(["|aa", "|b"]);
 
         expect(todoListRenderings).toBe(2); //'should have rendered list twice');
         expect(todoListWillReactCount).toBe(1); //, 'should have reacted')
@@ -103,7 +97,6 @@ describe("Mobx Observer", () => {
         expect(getDNode(store.todos[1], "completed").observers.length).toBe(0); //, 'completed observers should not have increased');
 
         const oldTodo = store.todos.pop();
-
         setTimeout(() => {
           expect(todoListRenderings).toBe(3); //, 'should have rendered list another time');
           expect(todoListWillReactCount).toBe(2); //, 'should have reacted')
@@ -339,7 +332,7 @@ describe("Mobx Observer", () => {
     done();
   });
 
-  it.only("124 - react to changes in this.props via computed", function(done) {
+  it("124 - react to changes in this.props via computed", function(done) {
     const Comp = observer(
       createClass({
         componentWillMount() {
@@ -361,10 +354,7 @@ describe("Mobx Observer", () => {
       },
       render() {
         return (
-          <div onClick={() => {
-            console.warn('+++++')
-            this.setState({ v: 2 })
-          }}>
+          <div onClick={() => this.setState({ v: 2 })}>
             <Comp x={this.state.v} />
           </div>
         );
@@ -375,10 +365,7 @@ describe("Mobx Observer", () => {
 
     expect(container.querySelector("span").textContent).toBe("x:1");
     container.querySelector("div").click();
-    console.warn(container.innerHTML)
     setTimeout(() => {
-      console.warn(container.innerHTML)
-      done()
       expect(container.querySelector("span").textContent).toBe("x:2");
       done();
     }, 100);
