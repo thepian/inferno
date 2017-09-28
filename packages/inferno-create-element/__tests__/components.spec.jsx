@@ -145,6 +145,7 @@ describe("Components (JSX)", () => {
   });
 
   it("should render a basic component and remove property if null", () => {
+    debugger;
     render(
       <div>
         <BasicComponent1 title="abc" name="basic-render" />
@@ -304,6 +305,7 @@ describe("Components (JSX)", () => {
       container
     );
 
+    debugger;
     expect(container.innerHTML).toBe(
       innerHTML(
         '<div><div class="basic"><span class="basic-render">The title is component 1</span></div>' +
@@ -1159,11 +1161,72 @@ describe("Components (JSX)", () => {
       }
     }
 
-    it("should correctly render", () => {
+    it("should correctly render - basic", () => {
       render(<First />, container);
       expect(container.innerHTML).toBe(
         innerHTML("<div><button>Increase! 0</button><p>0-42</p></div>")
       );
+    });
+
+    it("should correctly render child context #2", (done) => {
+
+      const StatelessComponent3 = ({ value }, { fortyTwo }) => (
+        <p>
+          {value}-{fortyTwo || "ERROR"}
+        </p>
+      );
+
+      class First extends Component {
+        constructor(props, context) {
+          super(props, context);
+
+          this.state = {
+            counter: 1
+          };
+
+          this._onClick = this._onClick.bind(this);
+        }
+
+        _onClick() {
+          this.setState({
+            counter: 2
+          });
+        }
+
+        getChildContext() {
+          return {
+            fortyTwo: 42 + this.state.counter
+          };
+        }
+
+        render() {
+          return (
+            <div>
+              <button onClick={this._onClick}>
+                Increase! {this.state.counter}
+              </button>
+              <StatelessComponent3 value={this.state.counter} />
+            </div>
+          );
+        }
+      }
+
+
+      render(<First />, container);
+      expect(container.innerHTML).toBe(
+        innerHTML("<div><button>Increase! 1</button><p>1-43</p></div>")
+      );
+      const buttons = Array.prototype.slice.call(
+        container.querySelectorAll("button")
+      );
+      debugger;
+      buttons.forEach(button => button.click());
+      setTimeout(() => {
+        expect(container.innerHTML).toBe(
+          innerHTML("<div><button>Increase! 2</button><p>2-44</p></div>")
+        );
+        done();
+      }, 10);
     });
 
     it("should handle update upon click", done => {
@@ -1866,6 +1929,7 @@ describe("Components (JSX)", () => {
 
       updater();
       expect(container.innerHTML).toBe(innerHTML("<div>Rendered!</div>"));
+      render(null, container);
     });
   });
 
@@ -1900,6 +1964,7 @@ describe("Components (JSX)", () => {
       }
     }
 
+    // debugger;
     render(<Bar />, container);
     expect(container.innerHTML).toBe(
       innerHTML("<div><span>span</span><div>div</div></div>")
@@ -2454,7 +2519,17 @@ describe("Components (JSX)", () => {
 
       render(<Comp1 />, container);
       expect(container.innerHTML).toEqual("<div>rendered</div>");
+
       render(<Comp1 foo={true} />, container);
+      expect(container.innerHTML).toEqual("");
+
+      debugger;
+
+      render(<Comp1 foo={true} />, container);
+      expect(container.innerHTML).toEqual("");
+
+      render(null, container);
+
       expect(container.innerHTML).toEqual("");
     });
 
@@ -2496,11 +2571,11 @@ describe("Components (JSX)", () => {
       render(<Comp1 />, container);
       expect(container.innerHTML).toEqual("<div>rendered</div>");
 
+      debugger;
       render(<Comp1 foo={true} />, container);
 
       expect(container.innerHTML).toEqual("<div>rendered1</div><div>rendered2</div>");
 
-      debugger;
       render(null, container);
       expect(container.innerHTML).toEqual("");
     });

@@ -10,7 +10,7 @@ import {
   isStringOrNumber
 } from "inferno-shared";
 import VNodeFlags from "inferno-vnode-flags";
-import {IV, options, isVNode} from "../core/implementation";
+import {IV, options, isVNode, IVTypes} from "../core/implementation";
 import { delegatedEvents } from "./constants";
 import { handleEvent } from "./events/delegation";
 import { componentToDOMNodeMap, removeChild } from "./utils/common";
@@ -72,8 +72,9 @@ export function unmount(iv: IV, parentDOM: Element | null) {
 
       if (!isNull(childIVs)) {
         if (isArray(childIVs)) {
+          parentDOM = iv.t === IVTypes.IsVirtualArray ? parentDOM : null;
           for (let i = 0, len = childIVs.length; i < len; i++) {
-            unmount(childIVs[i], null);
+            unmount(childIVs[i], parentDOM);
           }
         } else {
           unmount(childIVs, null);
@@ -82,7 +83,8 @@ export function unmount(iv: IV, parentDOM: Element | null) {
     }
   }
 
-  if (!isNull(parentDOM)) {
+  if (!isNull(parentDOM) && iv.t !== IVTypes.IsVirtualArray) {
+    iv.d = null;
     removeChild(parentDOM, dom as Element);
   }
 }

@@ -15,10 +15,6 @@ export function isVNode(instance: any): instance is VNode {
   );
 }
 
-export function isTextVNode(inst: VNode): boolean {
-  return inst.flags === VNodeFlags.Text;
-}
-
 export function isFunctionalVNode(instance: VNode): boolean {
   return (
     isVNode(instance) && Boolean(instance.flags & VNodeFlags.ComponentFunction)
@@ -44,7 +40,7 @@ export function getTagNameOfVNode(inst: any) {
 }
 
 export function isDOMVNode(inst: VNode): boolean {
-  return !isComponentVNode(inst) && !isTextVNode(inst);
+  return !isComponentVNode(inst);
 }
 
 export class Wrapper extends Component<any, any> {

@@ -144,6 +144,7 @@ describe("Select / select multiple (JSX)", () => {
       </select>
     );
 
+    debugger;
     // render(template(undefined), container);
     render(template(["foo", "bar"]), container);
 

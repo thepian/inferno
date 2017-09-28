@@ -73,13 +73,9 @@ export function mount(
   }
 
   // Mount array
-  iv.t = IVTypes.IsVirtualArray;
-  mountArrayChildren(iv, input, parentDOM, nextNode, lifecycle, context, isSVG, false);
-  if (iv.f & (IVFlags.HasKeyedChildren | IVFlags.HasNonKeydChildren)) {
-    iv.d = (iv.c as IV[])[0].d;
-  } else {
-    iv.d = null;
-  }
+  mountArrayChildren(iv, input, parentDOM, nextNode, lifecycle, context, isSVG, false, true);
+
+  return null;
 }
 
 function mountVNode(
@@ -191,7 +187,7 @@ export function mountElement(
 
         mountVNode(childIV, children as VNode, dom, null, lifecycle, context, childrenIsSVG, true);
       } else {
-        mountArrayChildren(iv, children, dom, null, lifecycle, context, childrenIsSVG, false);
+        mountArrayChildren(iv, children, dom, null, lifecycle, context, childrenIsSVG, false, false);
       }
     }
   }
@@ -207,7 +203,7 @@ export function mountElement(
       patchProp(prop, null, props[prop], dom, isSVG, hasControlledValue);
     }
     if (isFormElement) {
-      processElement(flags, vNode, dom, props, true, hasControlledValue);
+      processElement(flags, iv, dom, props, true, hasControlledValue);
     }
   }
 
@@ -237,7 +233,8 @@ export function mountArrayChildren(
   lifecycle,
   context,
   isSVG: boolean,
-  forceKeyed: boolean
+  forceKeyed: boolean,
+  isVirtual: boolean
 ) {
   let firstValid = true;
   let child;
@@ -260,6 +257,18 @@ export function mountArrayChildren(
       node = mount(childIV, child, parentDOM, nextNode, lifecycle, context, isSVG, true);
     }
   }
+
+  if (isVirtual) {
+    iv.t = IVTypes.IsVirtualArray;
+
+    if ((iv.f & (IVFlags.HasKeyedChildren | IVFlags.HasNonKeydChildren)) > 0) {
+      iv.d = (iv.c as IV[])[0].d;
+    } else {
+      iv.d = null;
+    }
+  } else {
+    iv.t = IVTypes.Regular;
+  }
 }
 
 export function mountComponent(
@@ -273,7 +282,7 @@ export function mountComponent(
   isClass: boolean,
   insertIntoDom: boolean
 ) {
-  let dom;
+  let dom = null;
   const type = vNode.type as Function;
   const props = vNode.props || EMPTY_OBJ;
   const ref = vNode.ref;
@@ -287,10 +296,11 @@ export function mountComponent(
       type,
       props,
       context,
-      lifecycle
+      lifecycle,
+      parentDOM
     );
     renderOutput = instance.render(props, instance.state, context);
-
+    context = instance.$CX;
     if (isFunction(options.afterRender)) {
       options.afterRender(instance);
     }

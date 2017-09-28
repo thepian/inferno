@@ -29,6 +29,7 @@ import { mount } from "./mounting";
 import { patch, updateClassComponent } from "./patching";
 import { unmount } from "./unmounting";
 import { callAll, componentToDOMNodeMap, EMPTY_OBJ } from "./utils/common";
+import IVFlags from "../../../inferno-iv-flags/src/index";
 
 const roots = options.roots;
 let renderInProgress: boolean = false;
@@ -134,7 +135,10 @@ export function render(
     }
   } else {
     if (isNullOrUndef(input)) {
-      unmount(root.i, parentDOM as Element);
+      // Only unmount if there is something to unmount
+      if ((root.i.f & IVFlags.HasInvalidChildren) === 0) {
+        unmount(root.i, parentDOM as Element);
+      }
       removeRoot(root);
     } else {
       patch(
@@ -160,7 +164,7 @@ export function render(
     const rootInput: VNode = root.i.v as any;
 
     if (rootInput && rootInput.flags & VNodeFlags.Component) {
-      return rootInput.children;
+      return rootInput;
     }
   }
 }
@@ -285,17 +289,15 @@ function applyState<P, S>(
     const context = component.context;
 
     component.$PS = null;
-    const iv = component.$IV as IV;
 
     updateClassComponent(
       component,
       nextState,
-      iv,
+      component.$IV,
       props,
-      iv.d,
+      component.$PE,
       component._lifecycle as any,
       context,
-      false,
       force,
       true
     );
@@ -342,6 +344,7 @@ export class Component<P, S> {
   public $Q: Function[] | null = null; // QUEUE
   public $FP: boolean = false; // FLUSH PENDING
   public $IV: IV;
+  public $PE: Element; // PARENT ELEMENT
 
   constructor(props?: P, context?: any) {
     /** @type {object} */

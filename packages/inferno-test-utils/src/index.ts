@@ -17,7 +17,6 @@ import {
   isComponentVNode as _isComponentVNode,
   isDOMVNode as _isDOMVNode,
   isFunctionalVNode as _isFunctionalVNode,
-  isTextVNode as _isTextVNode,
   isVNode as _isVNode,
   renderIntoDocument as _renderIntoDocument,
   Wrapper as _Wrapper
@@ -102,7 +101,7 @@ export function findAllInRenderedTree(
   predicate: (vNode: VNode) => boolean
 ): VNode[] | any {
   if (isRenderedClassComponent(renderedTree)) {
-    return findAllInVNodeTree(renderedTree.$LI, predicate);
+    return findAllInVNodeTree(renderedTree.$IV.v, predicate);
   } else {
     throwError(
       "findAllInRenderedTree(renderedTree, predicate) renderedTree must be a rendered class component"
@@ -120,7 +119,7 @@ export function findAllInVNodeTree(
 
     if (isRenderedClassComponent(children)) {
       result = result.concat(findAllInVNodeTree(
-        children.$LI,
+        children.$IV.v,
         predicate
       ) as VNode[]);
     } else if (_isVNode(children)) {
@@ -269,7 +268,6 @@ export const isClassVNode = _isClassVNode;
 export const isComponentVNode = _isComponentVNode;
 export const isDOMVNode = _isDOMVNode;
 export const isFunctionalVNode = _isFunctionalVNode;
-export const isTextVNode = _isTextVNode;
 export const isVNode = _isVNode;
 export const renderIntoDocument = _renderIntoDocument;
 export const Wrapper = _Wrapper;
@@ -295,7 +293,6 @@ export default {
   isFunctionalVNodeOfType,
   isRenderedClassComponent,
   isRenderedClassComponentOfType,
-  isTextVNode: _isTextVNode,
   isVNode: _isVNode,
   isVNodeOfType,
   renderIntoDocument: _renderIntoDocument,

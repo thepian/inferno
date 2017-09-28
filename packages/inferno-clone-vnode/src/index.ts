@@ -82,15 +82,6 @@ function directClone(vNodeToClone: VNode): VNode {
       vNodeToClone.ref,
       !children
     );
-  } else if (flags & VNodeFlags.Text) {
-    newVNode = createVNode(
-      VNodeFlags.Text,
-      null,
-      null,
-      vNodeToClone.children as string,
-      null,
-      vNodeToClone.key
-    );
   } else if (flags & VNodeFlags.Portal) {
     newVNode = vNodeToClone;
   }
@@ -212,15 +203,6 @@ export default function cloneVNode(
         ref,
         false
       );
-    } else if (flags & VNodeFlags.Text) {
-      newVNode = createVNode(
-        VNodeFlags.Text,
-        null,
-        null,
-        vNodeToClone.children as string,
-        null,
-        vNodeToClone.key
-      )
     }
   }
   return newVNode;

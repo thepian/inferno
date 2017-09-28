@@ -283,12 +283,6 @@ export class RenderQueueStream extends Readable {
         }
       }
       // Push text directly to queue
-    } else if ((flags & VNodeFlags.Text) > 0) {
-      this.addToQueue(
-        (firstChild ? "" : "<!---->") + escapeText(children),
-        position
-      );
-      // Handle errors
     } else {
       if (process.env.NODE_ENV !== "production") {
         if (typeof vNode === "object") {

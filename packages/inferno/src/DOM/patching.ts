@@ -58,24 +58,25 @@ function replaceOneByMany(iv: IV, nextInput: any[], parentDOM, lifecycle: Functi
   const oldNode = iv.d;
   unmount(iv, null);
 
-  mountArrayChildren(iv, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
-
-  if (iv.f & (IVFlags.HasKeyedChildren | IVFlags.HasNonKeydChildren)) {
-    iv.d = (iv.c as IV[])[0].d;
-  } else {
-    iv.d = null;
-  }
+  mountArrayChildren(iv, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false, true);
 
   parentDOM.removeChild(oldNode);
 }
 
-function replaceManyByOne(iv: IV, nextInput: VNode, parentDOM, lifecycle: Function[], context, isSVG: boolean) {
-  const oldNode = iv.d;
-  unmount(iv, null);
+function replaceManyByOne(parentIV: IV, nextInput: VNode, parentDOM, lifecycle: Function[], context, isSVG: boolean) {
+  const oldNode = parentIV.t === IVTypes.IsVirtualArray ? parentIV.d : (parentIV.c as IV[])[0].d;
+  const childIVs: IV[] = parentIV.c as IV[];
 
-  const newNode = mount(iv, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
-  iv.d = newNode;
-  parentDOM.replaceChild(oldNode, newNode);
+  for (let i = 0, len = childIVs.length; i < len; i++) {
+    unmount(childIVs[i], i === 0 ? null : parentDOM);
+  }
+
+  const newNode = mount(parentIV, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
+  if (parentIV.t === IVTypes.IsVirtualArray) {
+    parentIV.d =  newNode;
+  }
+
+  parentDOM.replaceChild(newNode, oldNode);
 }
 
 export function removeAllChildren(parentIV: IV, dom: Element, children: IV[]) {
@@ -123,16 +124,19 @@ export function patch(
   if (lastInput !== nextInput) {
     if (isStringOrNumber(nextInput)) {
       if (isStringOrNumber(lastInput)) {
-        updateTextContent(parentDOM, nextInput);
-      } else {
+        (iv.d as any).nodeValue = nextInput;
+        // updateTextContent(parentDOM, nextInput);
+      } else if (isVNode(lastInput)) {
         replaceDOM(iv, parentDOM, mountText(iv, nextInput, null, null,false));
+      } else {
+        replaceOneByMany(iv, nextInput as any, parentDOM, lifecycle, context, isSVG);
       }
     } else if (isStringOrNumber(lastInput)) {
-      replaceDOM(
-        iv,
-        parentDOM,
-        mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
-      );
+      if (isVNode(nextInput)) {
+        replaceDOM(iv, parentDOM, mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false));
+      } else {
+        replaceOneByMany(iv, nextInput as any, parentDOM, lifecycle, context, isSVG);
+      }
     } else if (isVNode(lastInput)) {
       if (isVNode(nextInput)) {
         const lastFlags = lastInput.flags;
@@ -208,15 +212,11 @@ export function patch(
       replaceManyByOne(iv, nextInput, parentDOM, lifecycle, context, isSVG);
     } else {
       // Many to Many
-      patchChildren(iv, nextInput, parentDOM, nextNode, lifecycle, context, false);
+      patchChildren(iv, nextInput, parentDOM, nextNode, lifecycle, context, false, true);
     }
   }
 
   iv.v = nextInput;
-
-  if (iv.t === IVTypes.IsVirtualArray) {
-    iv.d = isNull(iv.c) ? null : iv.c[0].d;
-  }
 }
 
 function patchPortal(iv: IV, lastVNode: VNode, nextVNode: VNode, lifecycle, context) {
@@ -289,7 +289,8 @@ export function patchElement(
         null,
         lifecycle,
         context,
-        childrenIsSVG
+        childrenIsSVG,
+        false
       );
     }
 
@@ -316,7 +317,7 @@ export function patchElement(
         if (isFormElement) {
           processElement(
             nextFlags,
-            nextVNode,
+            iv,
             dom,
             nextPropsOrEmpty,
             false,
@@ -363,7 +364,8 @@ function patchChildren(
   nextNode: Element | null,
   lifecycle: Function[],
   context,
-  childrenIsSVG: boolean
+  childrenIsSVG: boolean,
+  isVirtual: boolean
 ) {
   const childFlags = parentIV.f;
   let childIVs = parentIV.c as any;
@@ -400,7 +402,8 @@ function patchChildren(
         lifecycle,
         context,
         childrenIsSVG,
-        false
+        false,
+        isVirtual
       );
     }
   } else if ((childFlags & IVFlags.HasInvalidChildren) > 0) {
@@ -422,7 +425,8 @@ function patchChildren(
           lifecycle,
           context,
           childrenIsSVG,
-          false
+          false,
+          isVirtual
         );
       }
     }
@@ -452,7 +456,8 @@ function patchChildren(
         lifecycle,
         context,
         childrenIsSVG,
-        false
+        false,
+        isVirtual
       );
     }
   } else {
@@ -473,7 +478,8 @@ function patchChildren(
             lifecycle,
             context,
             childrenIsSVG,
-            false
+            false,
+            isVirtual
           );
         }
       } else if (nextLength === 0) {
@@ -515,8 +521,12 @@ function patchChildren(
       parentIV.f = IVFlags.HasTextChildren;
     } else {
       // vNode
-      replaceManyByOne(parentIV.c as IV, nextInput, parentDOM, lifecycle, context, childrenIsSVG);
+      replaceManyByOne(parentIV, nextInput, parentDOM, lifecycle, context, childrenIsSVG);
     }
+  }
+
+  if (parentIV.t === IVTypes.IsVirtualArray) {
+    parentIV.d = isNull(parentIV.c) ? null : parentIV.c[0].d;
   }
 }
 
@@ -535,6 +545,8 @@ export function updateClassComponent(
   // When component has componentDidUpdate hook, we need to clone lastState or will be modified by reference during update
   const lastState = instance.state;
   const lastProps = instance.props;
+  instance.$PE = parentDOM;
+
   let renderOutput;
 
   if (instance.$UN) {
@@ -614,10 +626,14 @@ export function updateClassComponent(
         parentDOM,
         null,
         lifecycle,
-        context,
-        false
+        childContext,
+        false,
+        true
       );
+      // Fix with arrays
       const dom = iv.c === null ? null : (iv.c as IV).d;
+
+      iv.d = dom;
 
       if (fromSetState) {
         let parent = iv.b;
@@ -715,8 +731,13 @@ export function patchComponent(
             null,
             lifecycle,
             context,
-            false
+            false,
+            true
           );
+
+          // Fix with arrays
+          iv.d = iv.c === null ? null : (iv.c as IV).d;
+
           if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
             nextHooks.onComponentDidUpdate(lastProps, nextProps);
           }

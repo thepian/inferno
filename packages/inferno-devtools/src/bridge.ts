@@ -18,7 +18,7 @@ function findVNodeFromDom(vNode, dom) {
 
     for (let i = 0, len = roots.length; i < len; i++) {
       const root = roots[i];
-      const result = findVNodeFromDom(root.input, dom);
+      const result = findVNodeFromDom(root.i, dom);
 
       if (result) {
         return result;
@@ -245,7 +245,7 @@ function isRootVNode(vNode) {
   for (let i = 0, len = options.roots.length; i < len; i++) {
     const root = options.roots[i];
 
-    if (root.input === vNode) {
+    if (root.i === vNode) {
       return true;
     }
   }
@@ -308,17 +308,12 @@ function normalizeChildren(children, dom) {
  * the correct type and properties.
  */
 function createReactDOMComponent(vNode, parentDOM) {
-  const flags = vNode.flags;
-
-  if (flags & VNodeFlags.Void) {
-    return null;
-  }
   const type = vNode.type;
   const children =
     vNode.children === 0 ? vNode.children.toString() : vNode.children;
   const props = vNode.props;
   const dom = vNode.dom;
-  const isText = flags & VNodeFlags.Text || isStringOrNumber(vNode);
+  const isText = isStringOrNumber(vNode);
 
   return {
     _currentElement: isText
@@ -435,6 +430,6 @@ function typeName(type) {
  */
 function findRoots(roots) {
   options.roots.forEach(root => {
-    roots[nextRootKey(roots)] = updateReactComponent(root.input, null);
+    roots[nextRootKey(roots)] = updateReactComponent(root.i, null);
   });
 }

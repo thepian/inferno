@@ -4,6 +4,7 @@
 
 import { isNullOrUndef } from "inferno-shared";
 import { createWrappedFunction } from "./wrapper";
+import {IV} from "../../core/implementation";
 
 export function isCheckedType(type) {
   return type === "checkbox" || type === "radio";
@@ -16,7 +17,7 @@ const wrappedOnChange = createWrappedFunction("onChange");
 const onCheckboxChange = createWrappedFunction("onClick", applyValue);
 
 export function processInput(
-  vNode,
+  iv: IV,
   dom,
   nextPropsOrEmpty,
   mounting: boolean,
@@ -24,7 +25,7 @@ export function processInput(
 ): void {
   applyValue(nextPropsOrEmpty, dom);
   if (isControlled) {
-    dom.vNode = vNode;
+    dom.iv = iv;
 
     if (mounting) {
       if (isCheckedType(nextPropsOrEmpty.type)) {

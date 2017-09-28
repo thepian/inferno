@@ -232,7 +232,6 @@ describe("keyed-nodes", () => {
     expect(container.firstChild.childNodes.length).toBe(3);
   });
   it("should insert to the middle", () => {
-    debugger;
     render(template(generateKeyNodes(["c", "d", "e"])), container);
     render(template(generateKeyNodes(["a", "b", "e"])), container);
     expect(container.textContent).toBe("abe");

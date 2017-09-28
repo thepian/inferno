@@ -17,7 +17,6 @@ export interface VNode {
   className: string | null;
   flags: number;
   key: any;
-  parentVNode: VNode | null;
   props: Props | null;
   ref: Ref | Refs | null;
   type: any;
@@ -71,7 +70,6 @@ export function createVNode(
     className: className === void 0 ? null : className,
     flags,
     key: key === void 0 ? null : key,
-    parentVNode: null,
     props: props === void 0 ? null : props,
     ref: ref === void 0 ? null : ref,
     type
@@ -87,6 +85,7 @@ export function createVNode(
 }
 
 export const enum IVTypes {
+  Regular = 0,
   IsVirtualArray = 1 << 1
 }
 
@@ -130,14 +129,6 @@ export function createIV(
  Would be nice to combine this with directClone but could not do it without breaking change
  */
 
-export function createVoidVNode(): VNode {
-  return createVNode(VNodeFlags.Void, null, null, "", null, null, null, true);
-}
-
-export function createTextVNode(text: string | number, key): VNode {
-  return createVNode(VNodeFlags.Text, null, null, text, null, key, null, true);
-}
-
 export function isVNode(o: any): o is VNode {
   return o.flags !== undefined;
 }
@@ -147,16 +138,20 @@ function normalizeProps(vNode: VNode, props: Props, children: InfernoChildren) {
   if ((vNode.flags & VNodeFlags.Element) > 0) {
     if (isNullOrUndef(children) && props.hasOwnProperty("children")) {
       vNode.children = props.children;
+      props.children = undefined;
     }
     if (props.hasOwnProperty("className")) {
       vNode.className = props.className || null;
+      props.className = undefined;
     }
   }
   if (props.hasOwnProperty("ref")) {
     vNode.ref = props.ref as any;
+    props.ref = undefined;
   }
   if (props.hasOwnProperty("key")) {
     vNode.key = props.key;
+    props.key = undefined;
   }
 }
 

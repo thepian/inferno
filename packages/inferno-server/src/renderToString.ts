@@ -171,11 +171,6 @@ function renderVNodeToString(vNode,
       }
     }
     return renderedString;
-  } else if ((flags & VNodeFlags.Text) > 0) {
-    return (
-      (firstChild ? "" : "<!---->") +
-      (children === "" ? " " : escapeText(children))
-    );
   } else {
     if (process.env.NODE_ENV !== "production") {
       if (typeof vNode === "object") {

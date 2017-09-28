@@ -3,7 +3,6 @@
  */ /** TypeDoc Comment */
 
 const enum VNodeFlags {
-  Text = 1,
   HtmlElement = 1 << 1,
 
   ComponentClass = 1 << 2,

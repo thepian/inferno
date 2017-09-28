@@ -4,13 +4,14 @@
 
 import { isNullOrUndef } from "inferno-shared";
 import {createWrappedFunction} from "./wrapper";
+import {IV} from "../../core/implementation";
 
 const onTextareaInputChange = createWrappedFunction('onInput', applyValue);
 
 const wrappedOnChange = createWrappedFunction('onChange');
 
 export function processTextarea(
-  vNode,
+  iv: IV,
   dom,
   nextPropsOrEmpty,
   mounting: boolean,
@@ -19,7 +20,7 @@ export function processTextarea(
   applyValue(nextPropsOrEmpty, dom, mounting);
 
   if (isControlled) {
-    dom.vNode = vNode;
+    dom.iv = iv;
 
     if (mounting) {
       dom.oninput = onTextareaInputChange;

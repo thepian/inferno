@@ -78,6 +78,7 @@ describe("Github1176", () => {
       </Router>
     );
 
+    debugger;
     render(routes, container);
 
     expect(container.querySelectorAll(".component1").length).toBe(1);

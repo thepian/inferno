@@ -996,8 +996,8 @@ describe("Elements (JSX)", () => {
   });
 
   describe("should correctly handle TEXT VNodes as quasi-immutable objects, like ReactElement does", () => {
-    const a = createVNode(VNodeFlags.Text, null, null, "Hello world");
-    const b = createVNode(VNodeFlags.Text, null, null, "This works!");
+    const a = createVNode(VNodeFlags.HtmlElement, null, null, "Hello world");
+    const b = createVNode(VNodeFlaga.HtmlElement, null, null, "This works!");
     const C = ({ children }) => (
       <div>
         {children}

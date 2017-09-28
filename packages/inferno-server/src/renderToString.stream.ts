@@ -160,13 +160,8 @@ export class RenderStream extends Readable {
             return true;
           });
         } else if (!isInvalid(child)) {
-          if ((child.flags & VNodeFlags.Text) > 0) {
-            if (insertComment) {
-              this.push("<!---->");
-            }
-          }
           return Promise.resolve(this.renderNode(child, context, false)).then(
-            () => !!(child.flags & VNodeFlags.Text)
+            () => false
           );
         }
       });

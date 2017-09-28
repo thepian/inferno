@@ -12,7 +12,6 @@ npm install --save inferno-vnode-flags
 
 ## Contents
 
-- `VNodeFlags.Text`
 - `VNodeFlags.HtmlElement`
 - `VNodeFlags.ComponentClass`
 - `VNodeFlags.ComponentFunction`
@@ -24,7 +23,6 @@ npm install --save inferno-vnode-flags
 - `VNodeFlags.InputElement`
 - `VNodeFlags.TextareaElement`
 - `VNodeFlags.SelectElement`
-- `VNodeFlags.Void`
 
 You can easily combine multiple flags, by using bitwise operators. A common use case is an element that has keyed children:
 

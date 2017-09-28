@@ -4,7 +4,6 @@ describe("normalizeProps", () => {
   it("should delete ref from props", () => {
     const vNode = {
       children: null,
-      dom: null,
       events: null,
       flags: 0,
       key: null,
@@ -23,7 +22,6 @@ describe("normalizeProps", () => {
   it("should delete key from props", () => {
     const vNode = {
       children: null,
-      dom: null,
       events: null,
       flags: 0,
       key: null,

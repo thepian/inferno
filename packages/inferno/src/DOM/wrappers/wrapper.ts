@@ -5,9 +5,10 @@ export function createWrappedFunction(
   methodName: string,
   applyValue?: Function
 ): Function {
-  const fnMethod = function(e) {
+  const fnMethod = function(e) {3
+    debugger;
     e.stopPropagation();
-    const vNode = this.vNode;
+    const vNode = this.iv.vNode;
     const props = vNode.props || EMPTY_OBJ;
     const dom = vNode.dom;
 

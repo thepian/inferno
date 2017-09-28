@@ -38,17 +38,16 @@ describe("patching routine", () => {
       VNodeFlags.HtmlElement,
       "span",
       null,
-      createVNode(VNodeFlags.Text, null, null, "a"),
+      "a",
       null,
       null,
       null,
       false
     );
-    const invalidNode = createVNode(0, "span");
 
     render(validNode, container);
     try {
-      render(invalidNode, container);
+      render({}, container);
     } catch (e) {
       expect(
         e.message.indexOf("Inferno Error: mount() received an object")
@@ -69,7 +68,7 @@ describe("patching routine", () => {
         VNodeFlags.HtmlElement,
         "span",
         null,
-        createVNode(VNodeFlags.Text, null, null, "a"),
+        "a",
         null,
         null,
         null,
@@ -94,13 +93,6 @@ describe("patching routine", () => {
 
     render(validNode, container);
     render(invalidChildNode, container);
-  });
-
-  it("Should not access real DOM property when text does not change", () => {
-    render(createVNode(VNodeFlags.Text, null, null, "a"), container);
-    expect(container.innerHTML).toEqual("a");
-    render(createVNode(VNodeFlags.Text, null, null, "a"), container);
-    expect(container.innerHTML).toEqual("a");
   });
 
   it("Should not patch same innerHTML", () => {

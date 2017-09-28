@@ -20,10 +20,12 @@ export function createClassComponentInstance(
   C,
   props: Props,
   context: Object,
-  lifecycle: Function[]
+  lifecycle: Function[],
+  parentElement: Element
 ) {
   const instance = new C(props, context) as Component<any, any>;
   iv.i = instance;
+  instance.$PE = parentElement;
   instance.$IV = iv;
   instance.$BS = false;
   instance.context = context;

@@ -932,7 +932,6 @@ describe("Children - (JSX)", () => {
         );
       }
 
-      debugger;
       visibleOne = true;
       activeOne = items;
       visibleTwo = false;

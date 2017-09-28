@@ -2,32 +2,36 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isArray, isInvalid, isNullOrUndef } from "inferno-shared";
-import { isVNode } from "../../core/implementation";
+import {isArray, isNull, isNullOrUndef} from "inferno-shared";
+import {IV, VNode} from "../../core/implementation";
 import { EMPTY_OBJ } from "../utils/common";
 import { createWrappedFunction } from "./wrapper";
 
-function updateChildOptionGroup(vNode, value) {
+function updateChildOptionGroup(iv: IV, value) {
+  const vNode = iv.v as VNode;
   const type = vNode.type;
 
   if (type === "optgroup") {
-    const children = vNode.children;
+    const children = iv.c;
 
-    if (isArray(children)) {
-      for (let i = 0, len = children.length; i < len; i++) {
-        updateChildOption(children[i], value);
+    if (!isNull(children)) {
+      if (isArray(children)) {
+        for (let i = 0, len = children.length; i < len; i++) {
+          updateChildOption(children[i], value);
+        }
+      } else {
+        updateChildOption(children, value);
       }
-    } else if (isVNode(children)) {
-      updateChildOption(children, value);
     }
   } else {
-    updateChildOption(vNode, value);
+    updateChildOption(iv, value);
   }
 }
 
-function updateChildOption(vNode, value) {
-  const props = vNode.props || EMPTY_OBJ;
-  const dom = vNode.dom;
+function updateChildOption(iv: IV, value) {
+  const vNode = iv.v as VNode;
+  const props: any = vNode.props || EMPTY_OBJ;
+  const dom: any = iv.d;
 
   // we do this as multiple may have changed
   dom.value = props.value;
@@ -44,16 +48,16 @@ function updateChildOption(vNode, value) {
 const onSelectChange = createWrappedFunction("onChange", applyValue);
 
 export function processSelect(
-  vNode,
+  iv: IV,
   dom,
   nextPropsOrEmpty,
   mounting: boolean,
   isControlled: boolean
 ) {
-  applyValue(vNode, dom, nextPropsOrEmpty, mounting);
+  applyValue(iv, dom, nextPropsOrEmpty, mounting);
 
   if (isControlled) {
-    dom.vNode = vNode;
+    dom.iv = iv;
 
     if (mounting) {
       dom.onchange = onSelectChange;
@@ -61,13 +65,13 @@ export function processSelect(
   }
 }
 
-function applyValue(vNode, dom, nextPropsOrEmpty, mounting: boolean) {
+function applyValue(iv, dom, nextPropsOrEmpty, mounting: boolean) {
   if (nextPropsOrEmpty.multiple !== dom.multiple) {
     dom.multiple = nextPropsOrEmpty.multiple;
   }
-  const children = vNode.children;
+  const children = iv.c;
 
-  if (!isInvalid(children)) {
+  if (!isNull(children)) {
     let value = nextPropsOrEmpty.value;
     if (mounting && isNullOrUndef(value)) {
       value = nextPropsOrEmpty.defaultValue;
@@ -76,7 +80,7 @@ function applyValue(vNode, dom, nextPropsOrEmpty, mounting: boolean) {
       for (let i = 0, len = children.length; i < len; i++) {
         updateChildOptionGroup(children[i], value);
       }
-    } else if (isVNode(children)) {
+    } else {
       updateChildOptionGroup(children, value);
     }
   }
