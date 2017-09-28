@@ -1,3 +1,7 @@
+/**
+ * @module Inferno-Iv-Flags
+ */ /** TypeDoc Comment */
+
 const enum IVFlags {
   HasInvalidChildren = 1,
   HasKeyedChildren = 1 << 1,

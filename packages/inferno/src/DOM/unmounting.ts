@@ -82,7 +82,7 @@ export function unmount(iv: IV, parentDOM: Element | null) {
     }
   }
 
-  if (!isNull(parentDOM)) {
+  if (!isNull(parentDOM) && !isNull(dom)) {
     removeChild(parentDOM, dom as Element);
   }
 }

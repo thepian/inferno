@@ -296,8 +296,7 @@ function applyState<P, S>(
       component._lifecycle as any,
       context,
       false,
-      force,
-      true
+      force
     );
     if (component.$UN) {
       return;

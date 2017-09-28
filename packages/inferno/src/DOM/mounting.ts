@@ -34,7 +34,7 @@ import { patchProp } from "./props";
 import {
   createClassComponentInstance
 } from "./utils/components";
-import IVFlags from "inferno-iv-flags";
+import IVFlags from "../../../inferno-iv-flags/src";
 
 export function mount(
   iv: IV,
@@ -310,7 +310,7 @@ export function mountComponent(
       parentDOM,
       nextNode,
       lifecycle,
-      context,
+      iv.i ? iv.i["$CX"] : context,
       isSVG,
       false
     );
@@ -332,7 +332,7 @@ export function mountComponent(
     mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
   }
 
-  if (insertIntoDom && !isNull(dom)) {
+  if (insertIntoDom && !isNull(dom) && renderOutput) {
     iv.d = dom;
     insertOrAppend(parentDOM, dom, nextNode);
   }

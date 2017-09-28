@@ -761,7 +761,7 @@ export function patchNonKeyedChildren(
       }
       if (updatedIVs < lastIVsLength) {
         iteratedIV = childIVs[addedIVs + updatedIVs];
-        pos = iteratedIV.p;
+        pos = iteratedIV.p - 1;
         nextNode = pos + 1 < lastIVsLength ? childIVs[pos + 1].d : outerRef
       } else {
         nextNode = outerRef;

@@ -17,7 +17,7 @@ describe("Mobx Misc", () => {
     document.body.removeChild(container);
   });
 
-  it("custom shouldComponentUpdate is not respected for observable changes (#50)", done => {
+  it.only("custom shouldComponentUpdate is not respected for observable changes (#50)", done => {
     let called = 0;
     const x = mobx.observable(3);
     const C = observer(

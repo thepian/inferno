@@ -62,8 +62,7 @@ export function renderIntoDocument(input): Wrapper {
     VNodeFlags.ComponentClass,
     Wrapper,
     null,
-    null,
-    { children: input }
+    input
   );
   const parent = document.createElement("div");
   document.body.appendChild(parent);
