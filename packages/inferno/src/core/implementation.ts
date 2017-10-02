@@ -105,7 +105,7 @@ export interface IV {
 
 export function createIV(
   value: string|number|VNode|any[],
-  position
+  position: number
 ): IV {
 
   return {

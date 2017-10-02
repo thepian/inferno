@@ -547,8 +547,6 @@ describe("Router (jsx)", () => {
       const url = "/search/100%25?arg1=50%25&arg1=75%25";
       const history = createMemoryHistory();
 
-      debugger;
-
       history.push(url);
       const router = (
         <Router history={history}>

@@ -21,11 +21,11 @@ import {
   mount,
   mountArrayChildren,
   mountComponent,
-  mountElement,
+  mountElement, mountPortal,
   mountRef,
-  mountText
+  mountText, mountVNode
 } from "./mounting";
-import { unmount } from "./unmounting";
+import {unmount} from "./unmounting";
 import {
   componentToDOMNodeMap,
   EMPTY_OBJ,
@@ -39,17 +39,19 @@ import {
   isControlledFormElement,
   processElement
 } from "./wrappers/processElement";
-import { patchProp, removeProp } from "./props";
+import {patchProp, removeProp} from "./props";
 import IVFlags from "../../../inferno-iv-flags/src/index";
 import {Component} from "packages/inferno/src/DOM/rendering";
 
-function replaceDOM(iv: IV, parentDOM: Element, dom: Element|null) {
+function replaceDOM(iv: IV, parentDOM: Element, mountFn: Function, nextInput, lifecycle, context, isSVG) {
   unmount(iv, null);
 
-  if (!isNull(dom)) {
-    replaceChild(parentDOM, dom, iv.d as Element);
-  } else {
+  const dom = mountFn(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false);
+
+  if (isNull(dom)) {
     removeChild(parentDOM, iv.d as Element);
+  } else {
+    replaceChild(parentDOM, dom, iv.d as Element);
   }
   iv.d = dom;
 }
@@ -73,7 +75,7 @@ function replaceManyByOne(parentIV: IV, nextInput: VNode, parentDOM, lifecycle: 
 
   const newNode = mount(parentIV, nextInput, parentDOM, oldNode, lifecycle, context, isSVG, false);
   if (parentIV.t === IVTypes.IsVirtualArray) {
-    parentIV.d =  newNode;
+    parentIV.d = newNode;
   }
 
   parentDOM.replaceChild(newNode, oldNode);
@@ -87,14 +89,12 @@ export function removeAllChildren(parentIV: IV, dom: Element, children: IV[]) {
   parentIV.f = IVFlags.HasInvalidChildren;
 }
 
-function replaceWithNewNode(
-  iv: IV,
-  nextInput: VNode | string | number,
-  parentDom,
-  lifecycle,
-  context,
-  isSVG: boolean
-) {
+function replaceWithNewNode(iv: IV,
+                            nextInput: VNode | string | number,
+                            parentDom,
+                            lifecycle,
+                            context,
+                            isSVG: boolean) {
   const oldNode = iv.d as Element;
 
   unmount(iv, null);
@@ -110,15 +110,13 @@ function replaceWithNewNode(
   iv.d = newDom;
 }
 
-export function patch(
-  iv: IV,
-  nextInput: VNode | string | number,
-  parentDOM: Element,
-  nextNode: Element | null,
-  lifecycle: Function[],
-  context: Object,
-  isSVG: boolean
-) {
+export function patch(iv: IV,
+                      nextInput: VNode | string | number,
+                      parentDOM: Element,
+                      nextNode: Element | null,
+                      lifecycle: Function[],
+                      context: Object,
+                      isSVG: boolean) {
   const lastInput = iv.v;
 
   if (lastInput !== nextInput) {
@@ -127,13 +125,13 @@ export function patch(
         (iv.d as any).nodeValue = nextInput;
         // updateTextContent(parentDOM, nextInput);
       } else if (isVNode(lastInput)) {
-        replaceDOM(iv, parentDOM, mountText(iv, nextInput, null, null,false));
+        replaceDOM(iv, parentDOM, mountText, nextInput, lifecycle, context, isSVG);
       } else {
         replaceOneByMany(iv, nextInput as any, parentDOM, lifecycle, context, isSVG);
       }
     } else if (isStringOrNumber(lastInput)) {
       if (isVNode(nextInput)) {
-        replaceDOM(iv, parentDOM, mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false));
+        replaceDOM(iv, parentDOM, mountVNode, nextInput, lifecycle, context, isSVG);
       } else {
         replaceOneByMany(iv, nextInput as any, parentDOM, lifecycle, context, isSVG);
       }
@@ -149,7 +147,8 @@ export function patch(
             replaceDOM(
               iv,
               parentDOM,
-              mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+              mountVNode,
+              nextInput, lifecycle, context, isSVG
             );
           }
         } else if (nextFlags & VNodeFlags.Component) {
@@ -169,7 +168,8 @@ export function patch(
             replaceDOM(
               iv,
               parentDOM,
-              mountComponent(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, isClass, false)
+              mountComponent,
+              nextInput, lifecycle, context, isSVG
             );
           }
         } else if (nextFlags & VNodeFlags.Element) {
@@ -188,21 +188,16 @@ export function patch(
             replaceDOM(
               iv,
               parentDOM,
-              mountElement(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+              mountElement,
+              nextInput, lifecycle, context, isSVG
             );
           }
         } else if (nextFlags & VNodeFlags.Portal) {
           replaceDOM(
             iv,
             parentDOM,
-            mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
-          );
-        } else {
-          // Error case: mount new one replacing old one
-          replaceDOM(
-            iv,
-            parentDOM,
-            mount(iv, nextInput, parentDOM, null, lifecycle, context, isSVG, false)
+            mountPortal,
+            nextInput, lifecycle, context, false
           );
         }
       } else {
@@ -245,16 +240,14 @@ function patchPortal(iv: IV, lastVNode: VNode, nextVNode: VNode, lifecycle, cont
   }
 }
 
-export function patchElement(
-  iv: IV,
-  lastVNode: VNode,
-  nextVNode: VNode,
-  parentDOM: Element | null,
-  nextNode: Element | null,
-  lifecycle: Function[],
-  context: Object,
-  isSVG: boolean
-) {
+export function patchElement(iv: IV,
+                             lastVNode: VNode,
+                             nextVNode: VNode,
+                             parentDOM: Element | null,
+                             nextNode: Element | null,
+                             lifecycle: Function[],
+                             context: Object,
+                             isSVG: boolean) {
   const nextTag = nextVNode.type;
   const lastTag = lastVNode.type;
 
@@ -357,16 +350,14 @@ export function patchElement(
   }
 }
 
-function patchChildren(
-  parentIV: IV,
-  nextInput,
-  parentDOM: Element,
-  nextNode: Element | null,
-  lifecycle: Function[],
-  context,
-  childrenIsSVG: boolean,
-  isVirtual: boolean
-) {
+function patchChildren(parentIV: IV,
+                       nextInput,
+                       parentDOM: Element,
+                       nextNode: Element | null,
+                       lifecycle: Function[],
+                       context,
+                       childrenIsSVG: boolean,
+                       isVirtual: boolean) {
   const childFlags = parentIV.f;
   let childIVs = parentIV.c as any;
 
@@ -530,17 +521,15 @@ function patchChildren(
   }
 }
 
-export function updateClassComponent(
-  instance: Component<any, any>,
-  nextState,
-  iv: IV,
-  nextProps,
-  parentDOM,
-  lifecycle: Function[],
-  context,
-  force: boolean,
-  fromSetState: boolean
-) {
+export function updateClassComponent(instance: Component<any, any>,
+                                     nextState,
+                                     iv: IV,
+                                     nextProps,
+                                     parentDOM,
+                                     lifecycle: Function[],
+                                     context,
+                                     force: boolean,
+                                     fromSetState: boolean) {
   const hasComponentDidUpdate = isFunction(instance.componentDidUpdate);
   // When component has componentDidUpdate hook, we need to clone lastState or will be modified by reference during update
   const lastState = instance.state;
@@ -631,6 +620,7 @@ export function updateClassComponent(
         true
       );
       // Fix with arrays
+      iv.v = renderOutput;
       const dom = iv.c === null ? null : (iv.c as IV).d;
 
       iv.d = dom;
@@ -660,15 +650,13 @@ export function updateClassComponent(
   }
 }
 
-export function patchComponent(
-  iv: IV,
-  nextVNode: VNode,
-  parentDOM: Element,
-  lifecycle: Function[],
-  context,
-  isSVG: boolean,
-  isClass: boolean
-): void {
+export function patchComponent(iv: IV,
+                               nextVNode: VNode,
+                               parentDOM: Element,
+                               lifecycle: Function[],
+                               context,
+                               isSVG: boolean,
+                               isClass: boolean): void {
   const lastVNode = iv.v as VNode;
   const lastType = lastVNode.type;
   const nextType = nextVNode.type;
@@ -736,6 +724,7 @@ export function patchComponent(
           );
 
           // Fix with arrays
+          iv.v = nextInput;
           iv.d = iv.c === null ? null : (iv.c as IV).d;
 
           if (nextHooksDefined && isFunction(nextHooks.onComponentDidUpdate)) {
@@ -747,17 +736,15 @@ export function patchComponent(
   }
 }
 
-export function patchNonKeyedChildren(
-  childIVs: IV[],
-  nextChildren: Array<VNode | null | string | false | undefined | true | number>,
-  parentDOM: Element,
-  outerRef: Element | null,
-  lifecycle: Function[],
-  context,
-  isSVG: boolean,
-  lastIVsLength: number,
-  nextChildrenLength: number
-) {
+export function patchNonKeyedChildren(childIVs: IV[],
+                                      nextChildren: Array<VNode | null | string | false | undefined | true | number>,
+                                      parentDOM: Element,
+                                      outerRef: Element | null,
+                                      lifecycle: Function[],
+                                      context,
+                                      isSVG: boolean,
+                                      lastIVsLength: number,
+                                      nextChildrenLength: number) {
   let nextChild;
   let iteratedIV = childIVs[0];
   let pos = iteratedIV.p;
@@ -807,18 +794,16 @@ export function patchNonKeyedChildren(
   }
 }
 
-export function patchKeyedChildren(
-  parentIV: IV,
-  a: IV[],
-  b: VNode[],
-  parentDOM: Element,
-  outerRef: Element | null,
-  lifecycle,
-  context: Function[],
-  isSVG: boolean,
-  aLength: number,
-  bLength: number
-) {
+export function patchKeyedChildren(parentIV: IV,
+                                   a: IV[],
+                                   b: VNode[],
+                                   parentDOM: Element,
+                                   outerRef: Element | null,
+                                   lifecycle,
+                                   context: Function[],
+                                   isSVG: boolean,
+                                   aLength: number,
+                                   bLength: number) {
   let aEnd = aLength - 1;
   let bEnd = bLength - 1;
   let aStart: number = 0;

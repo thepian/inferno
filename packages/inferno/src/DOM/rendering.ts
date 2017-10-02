@@ -29,7 +29,6 @@ import { mount } from "./mounting";
 import { patch, updateClassComponent } from "./patching";
 import { unmount } from "./unmounting";
 import { callAll, componentToDOMNodeMap, EMPTY_OBJ } from "./utils/common";
-import IVFlags from "../../../inferno-iv-flags/src/index";
 
 const roots = options.roots;
 let renderInProgress: boolean = false;
@@ -135,10 +134,7 @@ export function render(
     }
   } else {
     if (isNullOrUndef(input)) {
-      // Only unmount if there is something to unmount
-      if ((root.i.f & IVFlags.HasInvalidChildren) === 0) {
-        unmount(root.i, parentDOM as Element);
-      }
+      unmount(root.i, parentDOM as Element);
       removeRoot(root);
     } else {
       patch(

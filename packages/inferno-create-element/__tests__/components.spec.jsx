@@ -145,7 +145,6 @@ describe("Components (JSX)", () => {
   });
 
   it("should render a basic component and remove property if null", () => {
-    debugger;
     render(
       <div>
         <BasicComponent1 title="abc" name="basic-render" />
@@ -305,7 +304,6 @@ describe("Components (JSX)", () => {
       container
     );
 
-    debugger;
     expect(container.innerHTML).toBe(
       innerHTML(
         '<div><div class="basic"><span class="basic-render">The title is component 1</span></div>' +
@@ -1219,7 +1217,6 @@ describe("Components (JSX)", () => {
       const buttons = Array.prototype.slice.call(
         container.querySelectorAll("button")
       );
-      debugger;
       buttons.forEach(button => button.click());
       setTimeout(() => {
         expect(container.innerHTML).toBe(
@@ -1964,7 +1961,6 @@ describe("Components (JSX)", () => {
       }
     }
 
-    // debugger;
     render(<Bar />, container);
     expect(container.innerHTML).toBe(
       innerHTML("<div><span>span</span><div>div</div></div>")
@@ -2523,8 +2519,6 @@ describe("Components (JSX)", () => {
       render(<Comp1 foo={true} />, container);
       expect(container.innerHTML).toEqual("");
 
-      debugger;
-
       render(<Comp1 foo={true} />, container);
       expect(container.innerHTML).toEqual("");
 
@@ -2571,7 +2565,6 @@ describe("Components (JSX)", () => {
       render(<Comp1 />, container);
       expect(container.innerHTML).toEqual("<div>rendered</div>");
 
-      debugger;
       render(<Comp1 foo={true} />, container);
 
       expect(container.innerHTML).toEqual("<div>rendered1</div><div>rendered2</div>");

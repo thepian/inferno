@@ -1,16 +1,15 @@
 import { isFunction } from "inferno-shared";
-import { EMPTY_OBJ } from "../utils/common";
+import {IV, Props, VNode} from "../../core/implementation";
 
 export function createWrappedFunction(
   methodName: string,
   applyValue?: Function
 ): Function {
-  const fnMethod = function(e) {3
-    debugger;
+  const fnMethod = function(e) {
     e.stopPropagation();
-    const vNode = this.iv.vNode;
-    const props = vNode.props || EMPTY_OBJ;
-    const dom = vNode.dom;
+    const iv = this.iv as IV;
+    const vNode = iv.v as VNode;
+    const props = vNode.props as Props;
 
     if (props[methodName]) {
       const listener = props[methodName];
@@ -30,9 +29,9 @@ export function createWrappedFunction(
 
     if (isFunction(applyValue)) {
       const newVNode = this.vNode;
-      const newProps = newVNode.props || EMPTY_OBJ;
+      const newProps = newVNode.props;
 
-      applyValue(newProps, dom);
+      applyValue(newProps, iv.d);
     }
   };
 

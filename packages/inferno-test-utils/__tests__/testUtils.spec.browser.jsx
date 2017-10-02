@@ -31,11 +31,9 @@ import sinon from "sinon";
 const VNodeKeys = [
   "children",
   "className",
-  "dom",
   "flags",
   "key",
   "ref",
-  "parentVNode",
   "props",
   "type"
 ].sort();

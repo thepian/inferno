@@ -33,32 +33,6 @@ describe("patching routine", () => {
     );
   });
 
-  it("Should mount nextNode if lastNode crashed", () => {
-    const validNode = createVNode(
-      VNodeFlags.HtmlElement,
-      "span",
-      null,
-      "a",
-      null,
-      null,
-      null,
-      false
-    );
-
-    render(validNode, container);
-    try {
-      render({}, container);
-    } catch (e) {
-      expect(
-        e.message.indexOf("Inferno Error: mount() received an object")
-      ).not.toEqual(-1);
-    }
-    expect(container.innerHTML).toEqual("<span>a</span>");
-
-    render(validNode, container);
-    expect(container.innerHTML).toEqual("<span>a</span>");
-  });
-
   it("Patch operation when nextChildren is NOT Invalid/Array/StringOrNumber/VNode", () => {
     const validNode = createVNode(
       VNodeFlags.HtmlElement,

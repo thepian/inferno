@@ -18,7 +18,6 @@ describe("linkEvent", () => {
     let test;
 
     function handleOnClick(props) {
-      debugger;
       test = props.test;
     }
 
@@ -92,6 +91,19 @@ describe("linkEvent", () => {
     let test;
     let event;
 
+    function simulateInput(elm, text) {
+      if (typeof Event !== "undefined") {
+        const newEvent = document.createEvent("Event");
+        newEvent.initEvent("input", true, true);
+
+        elm.dispatchEvent(newEvent);
+      } else {
+        elm.oninput({
+          target: elm
+        });
+      }
+    }
+
     function handleOnInput(props, e) {
       test = props.test;
       event = e;
@@ -115,31 +127,16 @@ describe("linkEvent", () => {
       }
     }
 
-    it("should work correctly for functional components", (done) => {
-      const event = new Event('input', {
-        'bubbles': true,
-        'cancelable': true
-      });
-
+    it("should work correctly for functional components", () => {
       render(<FunctionalComponent test="123" />, container);
-      container.firstChild.value = '123';
-      container.firstChild.dispatchEvent(event);
-      setTimeout(() => {
-        expect(test).toBe("123");
-        expect(event.target.nodeName).toBe("INPUT");
-        done();
-      }, 10)
+      simulateInput(container.querySelector("input"), "123");
+      expect(test).toBe("123");
+      expect(event.target.nodeName).toBe("INPUT");
     });
 
     it("should work correctly for stateful components", () => {
-      const event = new Event('input', {
-        'bubbles': true,
-        'cancelable': true
-      });
-
       render(<StatefulComponent test="456" />, container);
-      container.firstChild.value = '456';
-      container.firstChild.dispatchEvent(event);
+      simulateInput(container.querySelector("input"), "123");
       expect(test).toBe("456");
       expect(event.target.nodeName).toBe("INPUT");
     });

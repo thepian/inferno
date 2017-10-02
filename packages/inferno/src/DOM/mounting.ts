@@ -47,7 +47,7 @@ export function mount(
   insertIntoDOM: boolean
 ) {
   if (isStringOrNumber(input)) {
-    return mountText(iv, input, parentDOM, nextNode, insertIntoDOM);
+    return mountText(iv, input, parentDOM, nextNode, lifecycle, context, isSVG, insertIntoDOM);
   }
 
   if (isVNode(input)) {
@@ -78,7 +78,7 @@ export function mount(
   return null;
 }
 
-function mountVNode(
+export function mountVNode(
   iv: IV,
   input: VNode,
   parentDOM: Element,
@@ -103,21 +103,12 @@ function mountVNode(
       lifecycle,
       context,
       isSVG,
-      (flags & VNodeFlags.ComponentClass) > 0,
       insertIntoDOM
     );
   }
 
-  // if ((flags & VNodeFlags.Void) > 0) {
-  //   return mountVoid(input, parentDOM);
-  // }
-
-  // if ((flags & VNodeFlags.Text) > 0) {
-  //   return mountText(input, parentDOM);
-  // }
-
   if ((flags & VNodeFlags.Portal) > 0) {
-    return mountPortal(iv, input, parentDOM, nextNode, lifecycle, context, insertIntoDOM);
+    return mountPortal(iv, input, parentDOM, nextNode, lifecycle, context, false, insertIntoDOM);
   }
 }
 
@@ -126,6 +117,7 @@ export function mountText(
   text: string | number,
   parentDOM: Element | null,
   nextNode: Element | null,
+  lifecycle, context, isSVG,
   insertIntoDom: boolean
 ): any {
   const dom = document.createTextNode(text as string) as any;
@@ -141,13 +133,13 @@ export function mountText(
 }
 
 
-export function mountPortal(iv: IV, vNode: VNode, parentDOM: Element, nextNode: Element | null, lifecycle, context, insertIntoDom: boolean) {
+export function mountPortal(iv: IV, vNode: VNode, parentDOM: Element, nextNode: Element | null, lifecycle, context, isSVG: boolean, insertIntoDom: boolean) {
   const childIV = createIV(vNode.children as VNode, 0);
 
   iv.c = childIV;
-  mount(childIV, vNode.children as VNode, vNode.type, null, lifecycle, context, false, true);
+  mount(childIV, vNode.children as VNode, vNode.type, null, lifecycle, context, isSVG, true);
 
-  return mountText(iv, '', parentDOM, nextNode, insertIntoDom);
+  return mountText(iv, '', parentDOM, nextNode, lifecycle, context, isSVG, insertIntoDom);
 }
 
 export function mountElement(
@@ -279,9 +271,9 @@ export function mountComponent(
   lifecycle,
   context,
   isSVG: boolean,
-  isClass: boolean,
   insertIntoDom: boolean
 ) {
+  const isClass = (vNode.flags & VNodeFlags.ComponentClass) > 0;
   let dom = null;
   const type = vNode.type as Function;
   const props = vNode.props || EMPTY_OBJ;
@@ -313,7 +305,7 @@ export function mountComponent(
   } else {
     iv.f = IVFlags.HasBasicChildren;
     iv.c = childIV = createIV(renderOutput, 0);
-
+    childIV.b = iv;
     childIV.d = dom = mount(
       childIV,
       renderOutput,
@@ -324,12 +316,6 @@ export function mountComponent(
       isSVG,
       false
     );
-
-    if (isVNode(renderOutput)) {
-      if (((renderOutput as VNode).flags & VNodeFlags.Component) > 0) {
-        childIV.b = iv;
-      }
-    }
   }
 
   if (isClass) {
@@ -365,7 +351,7 @@ export function mountClassComponentCallbacks(
           throwError(
             'string "refs" are not supported in Inferno 1.0. Use callback "refs" instead.'
           );
-        } else if (isObject(ref) && vNode.flags & VNodeFlags.ComponentClass) {
+        } else if (isObject(ref)) {
           throwError(
             "functional component lifecycle events are not supported on ES2015 class components."
           );

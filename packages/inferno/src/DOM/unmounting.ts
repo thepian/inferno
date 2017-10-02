@@ -15,75 +15,80 @@ import { delegatedEvents } from "./constants";
 import { handleEvent } from "./events/delegation";
 import { componentToDOMNodeMap, removeChild } from "./utils/common";
 import {Component} from "./rendering";
+import IVFlags from "../../../inferno-iv-flags/src/index";
 
 export function unmount(iv: IV, parentDOM: Element | null) {
-  const input = iv.v;
   const dom = iv.d;
 
-  if (!isStringOrNumber(input)) {
-    if (isVNode(input)) {
-      const flags = input.flags;
-      const ref = input.ref as any;
-      const props = input.props;
-      const childIVs = iv.c;
+  if ((iv.f & IVFlags.HasInvalidChildren) === 0) {
+    const input = iv.v;
 
-      if ((flags & VNodeFlags.Element) > 0) {
-        if (isFunction(ref)) {
-          ref(null);
-        }
+    if (!isStringOrNumber(input)) {
+      if (isVNode(input)) {
+        const flags = input.flags;
+        const ref = input.ref as any;
+        const props = input.props;
+        const childIVs = iv.c;
 
-        if (!isNull(props)) {
-          for (const name in props) {
-            // Remove all delegated events, regular events die with dom node
-            if (delegatedEvents.has(name)) {
-              handleEvent(name, null, dom);
-            }
-          }
-        }
-      } else if ((flags & VNodeFlags.Component) > 0) {
-        const isClass: boolean = (flags & VNodeFlags.ComponentClass) > 0;
-
-        if (isClass) {
-          const instance = iv.i as Component<any, any>;
-
-          if (isFunction(options.beforeUnmount)) {
-            options.beforeUnmount(input);
-          }
-          if (isFunction(instance.componentWillUnmount)) {
-            instance.componentWillUnmount();
-          }
+        if ((flags & VNodeFlags.Element) > 0) {
           if (isFunction(ref)) {
             ref(null);
           }
-          instance.$UN = true;
-          if (options.findDOMNodeEnabled) {
-            componentToDOMNodeMap.delete(instance);
-          }
-        } else {
-          if (!isNullOrUndef(ref)) {
-            if (isFunction(ref.onComponentWillUnmount)) {
-              ref.onComponentWillUnmount(dom, props);
+
+          if (!isNull(props)) {
+            for (const name in props) {
+              // Remove all delegated events, regular events die with dom node
+              if (delegatedEvents.has(name)) {
+                handleEvent(name, null, dom);
+              }
             }
           }
+        } else if ((flags & VNodeFlags.Component) > 0) {
+          const isClass: boolean = (flags & VNodeFlags.ComponentClass) > 0;
+
+          if (isClass) {
+            const instance = iv.i as Component<any, any>;
+
+            if (isFunction(options.beforeUnmount)) {
+              options.beforeUnmount(input);
+            }
+            if (isFunction(instance.componentWillUnmount)) {
+              instance.componentWillUnmount();
+            }
+            if (isFunction(ref)) {
+              ref(null);
+            }
+            instance.$UN = true;
+            if (options.findDOMNodeEnabled) {
+              componentToDOMNodeMap.delete(instance);
+            }
+          } else {
+            if (!isNullOrUndef(ref)) {
+              if (isFunction(ref.onComponentWillUnmount)) {
+                ref.onComponentWillUnmount(dom, props);
+              }
+            }
+          }
+
+          iv.b = null;
         }
 
-        iv.b = null;
-      }
+        if (!isNull(childIVs)) {
+          if (isArray(childIVs)) {
+            const node = iv.t === IVTypes.IsVirtualArray ? parentDOM : null;
 
-      if (!isNull(childIVs)) {
-        if (isArray(childIVs)) {
-          parentDOM = iv.t === IVTypes.IsVirtualArray ? parentDOM : null;
-          for (let i = 0, len = childIVs.length; i < len; i++) {
-            unmount(childIVs[i], parentDOM);
+            for (let i = 0, len = childIVs.length; i < len; i++) {
+              unmount(childIVs[i], node);
+            }
+          } else {
+            unmount(childIVs, null);
           }
-        } else {
-          unmount(childIVs, null);
         }
       }
     }
   }
 
-  if (!isNull(parentDOM) && iv.t !== IVTypes.IsVirtualArray) {
+  if (!isNull(parentDOM) && !isNull(dom) && iv.t !== IVTypes.IsVirtualArray) {
     iv.d = null;
     removeChild(parentDOM, dom as Element);
   }

@@ -78,7 +78,7 @@ describe("Github1176", () => {
       </Router>
     );
 
-    debugger;
+
     render(routes, container);
 
     expect(container.querySelectorAll(".component1").length).toBe(1);
@@ -90,7 +90,8 @@ describe("Github1176", () => {
       expect(container.querySelectorAll(".component2").length).toBe(1);
 
       const clear = container.querySelector("#clear");
-      clear.click();
+
+      triggerEvent("click", clear);
 
       expect(container.innerHTML).toBe("");
       expect(container.querySelectorAll(".component2").length).toBe(0);

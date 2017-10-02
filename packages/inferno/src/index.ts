@@ -11,7 +11,6 @@ import {
   InfernoChildren,
   InfernoInput,
   IV as _IV,
-  normalize as internal_normalize,
   options,
   Props,
   Refs as _Refs,
@@ -20,7 +19,6 @@ import {
 } from "./core/implementation";
 import { isUnitlessNumber as internal_isUnitlessNumber } from "./DOM/constants";
 import { linkEvent } from "./DOM/events/linkEvent";
-import { patch as internal_patch } from "./DOM/patching";
 import {
   createPortal,
   createRenderer,
@@ -29,7 +27,6 @@ import {
   Component
 } from "./DOM/rendering";
 import {
-  componentToDOMNodeMap as internal_DOMNodeMap,
   EMPTY_OBJ
 } from "./DOM/utils/common";
 
@@ -69,10 +66,7 @@ export default {
   createVNode, // core shapes
   findDOMNode,
   getFlagsForElementVnode,
-  internal_DOMNodeMap,
   internal_isUnitlessNumber,
-  internal_normalize,
-  internal_patch,
   linkEvent,
   options,
   render,
@@ -92,10 +86,7 @@ export {
   createVNode,
   findDOMNode,
   getFlagsForElementVnode,
-  internal_DOMNodeMap,
   internal_isUnitlessNumber,
-  internal_normalize,
-  internal_patch,
   linkEvent,
   options,
   render,

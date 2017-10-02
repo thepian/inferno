@@ -996,8 +996,8 @@ describe("Elements (JSX)", () => {
   });
 
   describe("should correctly handle TEXT VNodes as quasi-immutable objects, like ReactElement does", () => {
-    const a = createVNode(VNodeFlags.HtmlElement, null, null, "Hello world");
-    const b = createVNode(VNodeFlaga.HtmlElement, null, null, "This works!");
+    const a = createVNode(VNodeFlags.HtmlElement, 'div', null, "Hello world");
+    const b = createVNode(VNodeFlags.HtmlElement, 'div', null, "This works!");
     const C = ({ children }) => (
       <div>
         {children}
@@ -1008,18 +1008,16 @@ describe("Elements (JSX)", () => {
 
     it("basic example ", () => {
       render(a, container);
-      expect(container.innerHTML).toBe("Hello world");
+      expect(container.textContent).toBe("Hello world");
       render(b, container);
-      expect(container.innerHTML).toBe(innerHTML("This works!"));
+      expect(container.textContent).toBe(innerHTML("This works!"));
     });
 
     it("basic example #2 ", () => {
       render(<div>{[a, a, a]}</div>, container);
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>Hello worldHello worldHello world</div>")
-      );
+      expect(container.textContent).toBe("Hello worldHello worldHello world");
       render(b, container);
-      expect(container.innerHTML).toBe(innerHTML("This works!"));
+      expect(container.textContent).toBe("This works!");
     });
 
     it("basic nested example ", () => {
@@ -1030,9 +1028,7 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>Hello worldThis works!</div>")
-      );
+      expect(container.textContent).toBe("Hello worldThis works!");
       render(
         <div>
           {b}
@@ -1040,9 +1036,7 @@ describe("Elements (JSX)", () => {
         </div>,
         container
       );
-      expect(container.innerHTML).toBe(
-        innerHTML("<div>This works!Hello world</div>")
-      );
+      expect(container.textContent).toBe("This works!Hello world");
     });
 
     it("basic nested component example #2 ", () => {
